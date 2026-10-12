@@ -55,6 +55,7 @@ scripts/portable/*
 !scripts/portable/Launcher.cs
 !scripts/portable/SingleExePackage.cs
 !scripts/portable/verify-portable.mjs
+!scripts/portable/backup-cli.js
 !scripts/portable/NODE-LICENSE-*.txt
 coverage/
 dist/

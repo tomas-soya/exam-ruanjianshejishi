@@ -14,7 +14,7 @@ function publicFiles(root){
       if(e.isDirectory())tree(f,filter);else add(f);
     }
   }
-  for(const f of ['README.md','LICENSE','CONTENT_NOTICE.md','THIRD_PARTY_NOTICES.md','CONTRIBUTING.md','.gitignore','.gitattributes','package.json','package-lock.json'])add(f);
+  for(const f of ['README.md','LICENSE','CONTENT_NOTICE.md','THIRD_PARTY_NOTICES.md','CONTRIBUTING.md','RELEASE_NOTES.md','.gitignore','.gitattributes','package.json','package-lock.json'])add(f);
   tree('.github');tree('test',(_,e)=>e.isDirectory()||/\.test\.cjs$/.test(e.name));
   for(const app of ['exam-contracts','exam-service','exam-llm','exam-web']){
     add(`apps/${app}/package.json`);
@@ -31,7 +31,7 @@ function publicFiles(root){
     tree(`软件设计师复习材料/${dir}/assets`);
   }
   for(const name of ['软件设计师复习材料-选择题.md','软件设计师复习材料-案例题.md'])add(`软件设计师复习材料/${name}`);
-  for(const f of ['scripts/verify-public-content.cjs','scripts/verify-release.cjs','scripts/update-release-manifest.cjs','scripts/public-files.cjs','scripts/build-portable.mjs','scripts/portable/Launcher.cs','scripts/portable/SingleExePackage.cs','scripts/portable/verify-portable.mjs'])add(f);
+  for(const f of ['scripts/verify-public-content.cjs','scripts/verify-release.cjs','scripts/update-release-manifest.cjs','scripts/public-files.cjs','scripts/build-portable.mjs','scripts/portable/Launcher.cs','scripts/portable/SingleExePackage.cs','scripts/portable/verify-portable.mjs','scripts/portable/backup-cli.js'])add(f);
   for(const name of fs.readdirSync(path.join(root,'scripts/portable')))if(/^NODE-LICENSE-v[\d.]+\.txt$/.test(name))add(`scripts/portable/${name}`);
   return result.sort();
 }

@@ -13,13 +13,13 @@
   'use strict';
 
   const { div, span, button, h3, p } = DOM;
-  const { useState } = React;
 
   function AnswerSheet({
     questions = [],
     currentIndex = 0,
     answers = {}, // map of questionId -> answer
     flags = {},   // map of questionId -> boolean
+    solutions = {}, // map of questionId -> solution (effectiveAnswer, isCorrect, etc.)
     onJumpToQuestion,
     onSubmitExam,
     isSubmitting = false,
@@ -29,20 +29,39 @@
     const isMobileInitial = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(max-width: 900px)').matches
       : (typeof window !== 'undefined' && window.innerWidth <= 900);
-    const [collapsed, setCollapsed] = useState(isMobileInitial);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [collapsed, setCollapsed] = React.useState(isMobileInitial);
+    const [showConfirmModal, setShowConfirmModal] = React.useState(false);
 
+    const isPracticeMode = practiceMode === 'practice';
     const totalCount = questions.length;
     const isCase6Exam = totalCount === 6 && questions.every(q => q.subject === 'case');
 
-    // Calculate answered count
-    const answeredCount = questions.filter(q => {
+    // Calculate answered count and practice mode correct/wrong counts
+    let answeredCount = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    questions.forEach(q => {
       const ans = answers[q.id];
-      if (!ans) return false;
-      if (typeof ans === 'string') return ans.trim().length > 0;
-      if (typeof ans === 'object') return Object.values(ans).some(v => v && v.trim().length > 0);
-      return false;
-    }).length;
+      const isAnswered = ans && (typeof ans === 'string' ? ans.trim().length > 0 : Object.values(ans).some(v => v && v.trim().length > 0));
+      if (isAnswered) {
+        answeredCount++;
+        const isObjective = q.subject !== 'case';
+        if (isPracticeMode && isObjective) {
+          const sol = solutions && solutions[q.id];
+          if (sol) {
+            let isCorrect = null;
+            if (sol.effectiveAnswer) {
+              isCorrect = String(ans).trim().toUpperCase() === String(sol.effectiveAnswer).trim().toUpperCase();
+            } else if (typeof sol.isCorrect === 'boolean') {
+              isCorrect = sol.isCorrect;
+            }
+            if (isCorrect === true) correctCount++;
+            else if (isCorrect === false) wrongCount++;
+          }
+        }
+      }
+    });
 
     const unansweredCount = totalCount - answeredCount;
     const progressPercent = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
@@ -62,13 +81,23 @@
         className: 'btn-toggle-sheet',
         onClick: () => setCollapsed(!collapsed),
         title: collapsed ? '展开答题卡' : '收起答题卡'
-      }, collapsed ? (totalCount > 0 ? `📋 展开答题卡 (${answeredCount}/${totalCount})` : '📋 展开答题卡') : '✕ 收起答题卡'),
+      }, collapsed
+        ? (totalCount > 0
+            ? (isPracticeMode && answeredCount > 0
+                ? `📋 展开答题卡 (${answeredCount}/${totalCount} · 对${correctCount} 错${wrongCount})`
+                : `📋 展开答题卡 (${answeredCount}/${totalCount})`)
+            : '📋 展开答题卡')
+        : '✕ 收起答题卡'),
 
       !collapsed && div({ className: 'answer-sheet-content' },
         // Header
         div({ className: 'sheet-header' },
           h3({ className: 'sheet-title' }, '答题卡'),
-          span({ className: 'sheet-progress-text' }, `${answeredCount} / ${totalCount} (${progressPercent}%)`)
+          span({ className: 'sheet-progress-text' },
+            isPracticeMode && answeredCount > 0
+              ? `${answeredCount} / ${totalCount} (对 ${correctCount} / 错 ${wrongCount})`
+              : `${answeredCount} / ${totalCount} (${progressPercent}%)`
+          )
         ),
 
         // Progress bar
@@ -81,7 +110,15 @@
 
         // Legend
         div({ className: 'sheet-legend' },
-          div({ className: 'legend-item' },
+          isPracticeMode && div({ className: 'legend-item' },
+            span({ className: 'legend-dot dot-correct' }),
+            span({ className: 'legend-text' }, '正确')
+          ),
+          isPracticeMode && div({ className: 'legend-item' },
+            span({ className: 'legend-dot dot-wrong' }),
+            span({ className: 'legend-text' }, '错误')
+          ),
+          !isPracticeMode && div({ className: 'legend-item' },
             span({ className: 'legend-dot dot-answered' }),
             span({ className: 'legend-text' }, '已作答')
           ),
@@ -102,9 +139,26 @@
             const isAnswered = ans && (typeof ans === 'string' ? ans.trim().length > 0 : Object.values(ans).some(v => v && v.trim().length > 0));
             const isFlagged = !!flags[q.id];
             const isCurrent = currentIndex === idx;
+            const isObjective = q.subject !== 'case';
+            const sol = solutions && solutions[q.id];
+
+            let isCorrect = null;
+            if (isPracticeMode && isObjective && isAnswered && sol) {
+              if (sol.effectiveAnswer) {
+                isCorrect = String(ans).trim().toUpperCase() === String(sol.effectiveAnswer).trim().toUpperCase();
+              } else if (typeof sol.isCorrect === 'boolean') {
+                isCorrect = sol.isCorrect;
+              }
+            }
 
             let statusClass = 'status-unanswered';
-            if (isAnswered) statusClass = 'status-answered';
+            if (isAnswered) {
+              if (isPracticeMode && isObjective && isCorrect !== null) {
+                statusClass = isCorrect ? 'status-correct' : 'status-wrong';
+              } else {
+                statusClass = 'status-answered';
+              }
+            }
             if (isFlagged) statusClass += ' status-flagged';
             if (isCurrent) statusClass += ' status-current';
 
@@ -112,11 +166,24 @@
               ? `${idx + 1}(选)`
               : String(idx + 1);
 
+            let statusTitle = '未作答';
+            if (isAnswered) {
+              if (isPracticeMode && isObjective && isCorrect !== null) {
+                statusTitle = isCorrect ? '回答正确' : '回答错误';
+              } else {
+                statusTitle = '已作答';
+              }
+            }
+            if (isFlagged) statusTitle += ' · 已标记';
+
+            const questionTypeLabel = q.subject === 'case' ? '案例' : '客观';
+            const electiveTag = isCase6Exam && (idx === 4 || idx === 5) ? '·选做题' : '';
+
             return button({
               key: q.id || idx,
               className: `sheet-item-btn ${statusClass}`,
               onClick: () => onJumpToQuestion(idx),
-              title: `题号 ${idx + 1} (${q.subject === 'case' ? '案例' : '客观'}${isCase6Exam && (idx === 4 || idx === 5) ? '·选做题' : ''})`
+              title: `题号 ${idx + 1} (${questionTypeLabel}${electiveTag} · ${statusTitle})`
             },
               span({ className: 'item-num' }, labelText),
               isFlagged && span({ className: 'item-flag-icon' }, '🚩')

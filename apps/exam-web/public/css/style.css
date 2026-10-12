@@ -872,6 +872,12 @@ body {
 .dot-answered {
   background-color: var(--primary);
 }
+.dot-correct {
+  background-color: var(--success);
+}
+.dot-wrong {
+  background-color: var(--danger);
+}
 .dot-unanswered {
   border: 1px solid var(--border);
   background-color: #fff;
@@ -913,6 +919,26 @@ body {
   color: #fff;
 }
 
+.sheet-item-btn.status-correct {
+  background-color: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+.sheet-item-btn.status-correct:hover {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.sheet-item-btn.status-wrong {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.sheet-item-btn.status-wrong:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
 .sheet-item-btn.status-current {
   outline: 2px solid #38bdf8;
   outline-offset: 1px;
@@ -920,6 +946,7 @@ body {
 
 .sheet-item-btn.status-flagged {
   border-color: var(--warning);
+  box-shadow: 0 0 0 1px var(--warning);
 }
 
 .item-flag-icon {

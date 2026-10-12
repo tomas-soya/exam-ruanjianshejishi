@@ -12,7 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
-const { createApp } = require('./server');
+const { createApp, isAllowedOrigin, getCorsHeaders } = require('./server');
 const { QuestionBankLoader } = require('./bank/question-loader');
 const { MaterialSyncManager } = require('./material/material-sync-manager');
 const { createDatabase, closeDatabase } = require('./db/connection');
@@ -33,13 +33,6 @@ const MIME_TYPES = {
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf'
-};
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Max-Age': '86400'
 };
 
 function findPortableRoot(startDir) {
@@ -130,7 +123,7 @@ function getLanAddresses() {
 /**
  * Safely stream a static file with correct MIME type and caching headers.
  */
-function serveStaticFile(res, filePath) {
+function serveStaticFile(req, res, filePath) {
   if (!fs.existsSync(filePath)) {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('404 Not Found');
@@ -146,11 +139,12 @@ function serveStaticFile(res, filePath) {
 
   const ext = path.extname(filePath).toLowerCase();
   const mime = MIME_TYPES[ext] || 'application/octet-stream';
+  const cors = getCorsHeaders(req, { allowLanAccess: true });
   res.writeHead(200, {
     'Content-Type': mime,
     'Content-Length': stat.size,
     'Cache-Control': ['.html', '.js', '.css'].includes(ext) ? 'no-cache' : 'public, max-age=86400',
-    'Access-Control-Allow-Origin': '*'
+    ...cors
   });
   fs.createReadStream(filePath).pipe(res);
 }
@@ -250,16 +244,25 @@ async function startUnifiedServer(options = {}) {
     const parsedUrl = new URL(rawUrl, `http://${host}:${port}`);
     const pathname = parsedUrl.pathname;
 
+    const origin = req.headers ? req.headers.origin : null;
+    const isOriginAllowed = isAllowedOrigin(origin, { allowLanAccess: true });
+    const corsHeaders = getCorsHeaders(req, { allowLanAccess: true });
+
     // 1. CORS Preflight
     if (req.method === 'OPTIONS') {
-      res.writeHead(204, CORS_HEADERS);
+      if (origin && !isOriginAllowed) {
+        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Forbidden: Cross-origin request not allowed');
+        return;
+      }
+      res.writeHead(204, corsHeaders);
       res.end();
       return;
     }
 
     // 2. Web Health Check Endpoint
     if (pathname === '/api/v1/web-health' && req.method === 'GET') {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders });
       res.end(JSON.stringify({
         status: 'ok',
         boundAddress: server.address()?.address || null,
@@ -283,7 +286,7 @@ async function startUnifiedServer(options = {}) {
         return;
       }
 
-      return serveStaticFile(res, resolvedAssetPath);
+      return serveStaticFile(req, res, resolvedAssetPath);
     }
 
     // 4. API Endpoints Dispatch (/api/v1/*)
@@ -306,7 +309,7 @@ async function startUnifiedServer(options = {}) {
       targetFilePath = path.join(webPublicDir, 'index.html');
     }
 
-    serveStaticFile(res, targetFilePath);
+    serveStaticFile(req, res, targetFilePath);
   });
 
   unifiedServerInstance = server;

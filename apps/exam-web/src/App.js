@@ -278,8 +278,8 @@
           }
         }
 
-        // If starting in memorize mode, prefetch solutions
-        if (targetPracticeMode === 'memorize') {
+        // If starting in memorize or practice mode, prefetch solutions
+        if (targetPracticeMode === 'memorize' || targetPracticeMode === 'practice') {
           client.getSessionSolutions(sessionData.id).then(res => {
             if (res && res.solutions) {
               setSolutions(res.solutions);
@@ -421,8 +421,8 @@
         } else {
           setActiveTab('exam');
 
-          // If session is in memorize mode or solutions were revealed, prefetch solutions
-          if (restoredMode === 'memorize' || resumed.session.answersRevealed) {
+          // If session is in memorize or practice mode or solutions were revealed, prefetch solutions
+          if (restoredMode === 'memorize' || restoredMode === 'practice' || resumed.session.answersRevealed) {
             client.getSessionSolutions(sessionId).then(res => {
               if (res && res.solutions) {
                 setSolutions(res.solutions);
@@ -518,8 +518,8 @@
           console.warn('Failed to persist practiceMode:', e);
         }
 
-        if (newMode === 'memorize') {
-          // Preload solutions in memorize mode
+        if (newMode === 'memorize' || newMode === 'practice') {
+          // Preload solutions in memorize or practice mode
           client.getSessionSolutions(session.id).then(res => {
             if (res && res.solutions) {
               setSolutions(prev => ({ ...prev, ...res.solutions }));
@@ -937,6 +937,7 @@
               currentIndex,
               answers,
               flags,
+              solutions,
               onJumpToQuestion: (idx) => setCurrentIndex(idx),
               onSubmitExam: handleSubmitExam,
               isSubmitting,

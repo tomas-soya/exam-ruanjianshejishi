@@ -33,6 +33,29 @@ fs.mkdirSync(resourcesDir, { recursive: true });
 fs.mkdirSync(dataDir, { recursive: true });
 fs.mkdirSync(backupsDir, { recursive: true });
 
+// 安全公共文件过滤规则（彻底杜绝敏感文件、私钥、数据库、凭据等进入发布包）
+const FORBIDDEN_EXTENSIONS = new Set([
+  '.db', '.db-wal', '.db-shm', '.sqlite', '.sqlite3',
+  '.pem', '.key', '.pfx', '.p12', '.crt', '.cer',
+  '.cs', '.tmp', '.log'
+]);
+const FORBIDDEN_DIR_OR_FILE_NAMES = new Set([
+  'node_modules', '.git', 'test', 'data', 'backups',
+  'workflow', 'browser-workbench', 'sources', 'quarantine',
+  'calibration', '.tmp-export', '.tmp-import', 'README.md'
+]);
+
+function isSafePublicEntry(srcPath, entry) {
+  const name = entry.name;
+  if (FORBIDDEN_DIR_OR_FILE_NAMES.has(name)) return false;
+  if (name.startsWith('.env') || name.startsWith('.tmp')) return false;
+  if (entry.isFile()) {
+    const ext = path.extname(name).toLowerCase();
+    if (FORBIDDEN_EXTENSIONS.has(ext)) return false;
+  }
+  return true;
+}
+
 // 辅助复制函数
 function copyDirectoryRecursive(src, dest, filterFn = null) {
   if (!fs.existsSync(src)) return;
@@ -41,6 +64,10 @@ function copyDirectoryRecursive(src, dest, filterFn = null) {
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
+
+    if (!isSafePublicEntry(srcPath, entry)) {
+      continue;
+    }
 
     if (filterFn && !filterFn(srcPath, entry)) {
       continue;
@@ -63,6 +90,12 @@ if (!fs.existsSync(nodeLicense)) throw new Error(`请先准备与 ${process.vers
 fs.copyFileSync(nodeLicense, path.join(portableAppDir, 'NODE-LICENSE.txt'));
 for (const name of ['LICENSE', 'CONTENT_NOTICE.md', 'THIRD_PARTY_NOTICES.md']) fs.copyFileSync(path.join(workspaceRoot,name),path.join(portableAppDir,name));
 
+// 复制备份命令行工具
+const backupCliSrc = path.join(workspaceRoot, 'scripts', 'portable', 'backup-cli.js');
+if (fs.existsSync(backupCliSrc)) {
+  fs.copyFileSync(backupCliSrc, path.join(binDir, 'backup-cli.js'));
+}
+
 // 3. 提取编译好的模块与服务核心
 console.log('[3/8] 组装服务后端代码与依赖...');
 const nodeModulesDir = path.join(binDir, 'node_modules');
@@ -74,29 +107,25 @@ const contractsDestPkg = path.join(nodeModulesDir, '@ruankao', 'exam-contracts')
 fs.mkdirSync(path.dirname(contractsDestPkg), { recursive: true });
 copyDirectoryRecursive(
   path.join(workspaceRoot, 'apps', 'exam-contracts'),
-  contractsDestRel,
-  (p, e) => !['node_modules', '.git', 'test', 'README.md'].includes(e.name)
+  contractsDestRel
 );
 copyDirectoryRecursive(
   path.join(workspaceRoot, 'apps', 'exam-contracts'),
-  contractsDestPkg,
-  (p, e) => !['node_modules', '.git', 'test', 'README.md'].includes(e.name)
+  contractsDestPkg
 );
 
 // 复制 exam-llm
 const llmDest = path.join(binDir, 'exam-llm');
 copyDirectoryRecursive(
   path.join(workspaceRoot, 'apps', 'exam-llm'),
-  llmDest,
-  (p, e) => !['node_modules', '.git', 'test', 'calibration', 'README.md'].includes(e.name) && !e.name.startsWith('.tmp') && !e.name.endsWith('.db') && !e.name.startsWith('.env')
+  llmDest
 );
 
 // 复制 exam-service
 const serviceDest = path.join(binDir, 'exam-service');
 copyDirectoryRecursive(
   path.join(workspaceRoot, 'apps', 'exam-service'),
-  serviceDest,
-  (p, e) => !['node_modules', '.git', 'data', 'test'].includes(e.name) && !e.name.startsWith('.tmp') && !e.name.endsWith('.db') && !e.name.startsWith('.env')
+  serviceDest
 );
 
 // 生成统一入口 bin/app-unified.js
@@ -168,9 +197,18 @@ const launcherExe = path.join(portableAppDir, '软件设计师刷题平台.exe')
 const cscPath = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
 
 if (fs.existsSync(cscPath)) {
-  execSync(`"${cscPath}" /nologo /optimize+ /target:exe /out:"${launcherExe}" "${launcherCs}"`, { stdio: 'inherit' });
-  console.log('   -> 原生启动程序编译完成 (< 50KB 原生 Win32 可执行文件)');
+  try {
+    execSync(`"${cscPath}" /nologo /optimize+ /target:exe /out:"${launcherExe}" "${launcherCs}"`, { stdio: 'inherit' });
+    console.log('   -> 原生启动程序编译完成 (< 50KB 原生 Win32 可执行文件)');
+  } catch (err) {
+    if (process.env.ALLOW_SKIP_EXE !== 'true') {
+      throw new Error(`原生启动程序编译失败: ${err.message}`);
+    }
+  }
 } else {
+  if (process.env.ALLOW_SKIP_EXE !== 'true') {
+    throw new Error('未检测到 C# 编译器 csc.exe，无法生成启动程序；如需跳过请设置 ALLOW_SKIP_EXE=true');
+  }
   console.warn('   -> [警告] 未检测到 csc.exe，将使用批处理作为主启动入口');
 }
 
@@ -181,10 +219,10 @@ fs.writeFileSync(
   'utf8'
 );
 
-// 写入一键备份脚本
+// 写入一键备份脚本 (复用一致性备份工具，保证 WAL 模式下数据安全无丢失，失败明确退出非零)
 fs.writeFileSync(
   path.join(portableAppDir, '一键备份做题记录.bat'),
-  `@echo off\r\nchcp 65001 >nul\r\ncd /d "%~dp0"\r\nset TIMESTAMP=%date:~0,4%%date:~5,2%%date:~8,2%_%time:~0,2%%time:~3,2%%time:~6,2%\r\nset TIMESTAMP=%TIMESTAMP: =0%\r\nif not exist data\\backups mkdir data\\backups\r\nif exist data\\app.db (\r\n  copy data\\app.db "data\\backups\\app_backup_%TIMESTAMP%.db" >nul\r\necho [成功] 做题记录已安全备份到: data\\backups\\app_backup_%TIMESTAMP%.db\r\n) else (\r\necho [提示] 尚未生成做题记录 (data\\app.db 暂不存在)\r\n)\r\npause\r\n`,
+  `@echo off\r\nchcp 65001 >nul\r\ncd /d "%~dp0"\r\nif exist "bin\\node.exe" if exist "bin\\backup-cli.js" (\r\n  "bin\\node.exe" "bin\\backup-cli.js"\r\n  if errorlevel 1 (\r\n    echo.\r\n    echo [错误] 备份做题记录失败，请检查文件权限或运行状态。\r\n    pause\r\n    exit /b 1\r\n  )\r\n  pause\r\n  exit /b 0\r\n)\r\nset TIMESTAMP=%date:~0,4%%date:~5,2%%date:~8,2%_%time:~0,2%%time:~3,2%%time:~6,2%\r\nset TIMESTAMP=%TIMESTAMP: =0%\r\nif not exist data\\backups mkdir data\\backups\r\nif exist data\\app.db (\r\n  copy data\\app.db "data\\backups\\app_backup_%TIMESTAMP%.db" >nul\r\n  if errorlevel 1 (\r\n    echo [错误] 复制数据库文件失败。\r\n    pause\r\n    exit /b 1\r\n  )\r\n  echo [成功] 做题记录已安全备份到: data\\backups\\app_backup_%TIMESTAMP%.db\r\n) else (\r\n  echo [提示] 尚未生成做题记录 (data\\app.db 暂不存在)\r\n)\r\npause\r\nexit /b 0\r\n`,
   'utf8'
 );
 
@@ -192,7 +230,7 @@ fs.writeFileSync(
 const readmeContent = `软件设计师刷题与智能复习工作台
 
 作者：tomas-soya（https://github.com/tomas-soya）
-仓库地址：待公布。
+仓库地址：https://github.com/tomas-soya/exam-ruanjianshejishi
 该项目完全免费开源，如果你是花钱买到的，那么你被骗了
 对题目、刷题功能有任何建议，欢迎提交issue
 
@@ -237,7 +275,7 @@ if (fs.existsSync(cscPath) && fs.existsSync(singleExeCs) && fs.existsSync(zipFil
   console.log(`[9/9] 正在封装单文件自运行程序 (${path.basename(singleExePath)})...`);
   try {
     execSync(
-      `"${cscPath}" /nologo /optimize+ /target:winexe /r:System.Windows.Forms.dll /r:System.IO.Compression.FileSystem.dll /resource:"${zipFile}" /out:"${singleExePath}" "${singleExeCs}"`,
+      `"${cscPath}" /nologo /optimize+ /target:winexe /r:System.Windows.Forms.dll /r:System.IO.Compression.FileSystem.dll /r:System.IO.Compression.dll /resource:"${zipFile}" /out:"${singleExePath}" "${singleExeCs}"`,
       { stdio: 'inherit' }
     );
     const exeStat = fs.statSync(singleExePath);
@@ -245,8 +283,13 @@ if (fs.existsSync(cscPath) && fs.existsSync(singleExeCs) && fs.existsSync(zipFil
     fs.copyFileSync(singleExePath, singleExeAsciiPath);
     console.log(`   -> 单文件 exe 封装完成: ${(exeStat.size / (1024 * 1024)).toFixed(2)} MB`);
   } catch (err) {
+    if (process.env.ALLOW_SKIP_EXE !== 'true') {
+      throw new Error(`单文件 exe 封装失败: ${err.message}`);
+    }
     console.warn('   -> 单文件 exe 封装失败:', err.message);
   }
+} else if (process.env.ALLOW_SKIP_EXE !== 'true') {
+  throw new Error('缺少 C# 编译器或便携 Zip 归档，无法生成单文件 EXE');
 }
 
 console.log('======================================================================');

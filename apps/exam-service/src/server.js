@@ -10,13 +10,6 @@ const { QuestionBankLoader } = require('./bank/question-loader');
 const { createDatabase, closeDatabase } = require('./db/connection');
 const { runMigrations } = require('./db/migrator');
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Max-Age': '86400'
-};
-
 const LOCAL_HOSTS = new Set([
   '127.0.0.1',
   'localhost',
@@ -38,6 +31,56 @@ function isLanAddress(addr) {
   const [a, b] = parts;
   return a === 10 || (a === 172 && b >= 16 && b <= 31) ||
     (a === 192 && b === 168) || (a === 169 && b === 254);
+}
+
+function isAllowedOrigin(origin, { allowLanAccess = false } = {}) {
+  if (!origin) return true;
+  try {
+    const parsed = new URL(origin);
+    const hostname = parsed.hostname;
+    if (isLocalAddress(hostname)) return true;
+    if (allowLanAccess && isLanAddress(hostname)) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function getCorsHeaders(req, { allowLanAccess = false, isSensitive = false } = {}) {
+  const origin = req && req.headers ? req.headers.origin : null;
+  if (!origin) return {};
+  if (!isAllowedOrigin(origin, { allowLanAccess })) return {};
+
+  if (isSensitive) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+      'Vary': 'Origin'
+    };
+  }
+
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+}
+
+const SENSITIVE_ROUTES = new Set([
+  '/api/v1/system/db-export',
+  '/api/v1/system/db-import',
+  '/api/v1/system/reset',
+  '/api/v1/admin/shutdown',
+  '/api/v1/settings'
+]);
+
+function isSensitiveRoute(pathname) {
+  if (SENSITIVE_ROUTES.has(pathname)) return true;
+  if (pathname.startsWith('/api/v1/system/')) return true;
+  return false;
 }
 
 function parseJsonBody(req, maxSizeBytes = 1048576) {
@@ -106,10 +149,11 @@ function parseRawBody(req, maxSizeBytes = 200 * 1024 * 1024) {
 
 function sendJson(res, statusCode, payload) {
   const jsonStr = JSON.stringify(payload);
+  const cors = res.__corsHeaders || {};
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
     'Content-Length': Buffer.byteLength(jsonStr, 'utf8'),
-    ...CORS_HEADERS
+    ...cors
   });
   res.end(jsonStr);
 }
@@ -185,18 +229,34 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
       return;
     }
 
-    // 2. CORS Preflight
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204, CORS_HEADERS);
-      res.end();
-      return;
-    }
-
-    // 3. URL and Query parsing
+    const origin = req.headers ? req.headers.origin : null;
+    const isOriginAllowed = isAllowedOrigin(origin, { allowLanAccess });
     const parsedUrl = url.parse(req.url, true);
     const pathname = (parsedUrl.pathname || '').replace(/\/+$/, '') || '/';
     const query = parsedUrl.query || {};
     const method = (req.method || 'GET').toUpperCase();
+
+    const isSensitive = isSensitiveRoute(pathname);
+    const corsHeaders = getCorsHeaders(req, { allowLanAccess, isSensitive });
+    res.__corsHeaders = corsHeaders;
+
+    // 2. CORS Preflight
+    if (req.method === 'OPTIONS') {
+      if (origin && !isOriginAllowed) {
+        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Forbidden: Untrusted cross-origin request');
+        return;
+      }
+      res.writeHead(204, corsHeaders);
+      res.end();
+      return;
+    }
+
+    // 3. Block untrusted cross-origin requests on sensitive endpoints
+    if (origin && !isOriginAllowed && isSensitive) {
+      sendError(res, 'FORBIDDEN_CROSS_ORIGIN', '禁止不可信的跨站来源访问敏感接口', 403);
+      return;
+    }
 
     try {
       // Route 0: Admin Graceful Shutdown (AC-SHUTDOWN)
@@ -605,7 +665,7 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
           'Content-Type': contentType,
           'Content-Length': fs.statSync(resolvedPath).size,
           'Cache-Control': 'public, max-age=86400',
-          ...CORS_HEADERS
+          ...corsHeaders
         });
         fs.createReadStream(resolvedPath).pipe(res);
         return;
@@ -701,11 +761,12 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
         try {
           examService.exportDatabaseToBackup(tmpFile);
           const stat = fs.statSync(tmpFile);
+          const exportCorsHeaders = getCorsHeaders(req, { allowLanAccess, isSensitive: true });
           res.writeHead(200, {
             'Content-Type': 'application/vnd.sqlite3',
             'Content-Disposition': `attachment; filename="ruankao_app_${timestamp}.db"`,
             'Content-Length': stat.size,
-            ...CORS_HEADERS
+            ...exportCorsHeaders
           });
 
           const stream = fs.createReadStream(tmpFile);
@@ -864,7 +925,8 @@ function startServer({ port = 3000, host = '127.0.0.1', dbPath, exitOnShutdown =
 module.exports = {
   createApp,
   startServer,
-  CORS_HEADERS
+  isAllowedOrigin,
+  getCorsHeaders
 };
 
 if (require.main === module) {

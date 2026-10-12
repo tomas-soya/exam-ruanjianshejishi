@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release version tag (must follow semver starting with v, e.g. v1.0.3)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,15 +22,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Resolve and validate release tag
+        id: resolve-tag
+        shell: pwsh
+        run: |
+          $tag = ""
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $tag = "${{ github.event.inputs.tag }}".Trim()
+          } else {
+            $tag = "${{ github.ref_name }}".Trim()
+          }
+          if ($tag -notmatch '^v\d+\.\d+\.\d+') {
+            Write-Error "Invalid release tag '$tag'. Tag must follow semantic versioning starting with 'v' (e.g. v1.0.3)."
+            exit 1
+          }
+          Write-Host "Validated release tag: $tag"
+          "release_tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
       - name: Setup Node.js 22.17.1
         uses: actions/setup-node@v4
         with:
           node-version: '22.17.1'
 
-      - name: Run test suite and release verification
+      - name: Run test suite
+        shell: pwsh
         run: |
           npm test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify release content and bank integrity
+        shell: pwsh
+        run: |
           npm run verify
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build portable package and single-file EXE
         shell: pwsh
@@ -33,21 +62,37 @@ jobs:
           $dateTag = Get-Date -Format "yyyyMMdd"
           $env:PORTABLE_DATE = "$dateTag"
           node scripts/build-portable.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/portable/verify-portable.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Generate Checksums
         shell: pwsh
         run: |
-          Get-FileHash dist/portable/RuankaoExam-Portable-*.zip, dist/portable/RuankaoExam-SingleExe-*.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } | Out-File -FilePath dist/portable/SHA256SUMS.txt -Encoding utf8
+          $zipFiles = Get-ChildItem -Path dist/portable -Filter "RuankaoExam-Portable-*.zip"
+          $exeFiles = Get-ChildItem -Path dist/portable -Filter "RuankaoExam-SingleExe-*.exe"
+          if (-not $zipFiles -or $zipFiles.Count -eq 0) {
+            Write-Error "Portable ZIP archive was not produced!"
+            exit 1
+          }
+          if (-not $exeFiles -or $exeFiles.Count -eq 0) {
+            Write-Error "Single-File EXE was not produced!"
+            exit 1
+          }
+          $artifacts = @($zipFiles[0].FullName, $exeFiles[0].FullName)
+          Get-FileHash $artifacts -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } | Out-File -FilePath dist/portable/SHA256SUMS.txt -Encoding utf8
           Get-Content dist/portable/SHA256SUMS.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: 软件设计师刷题与智能复习工作台 ${{ github.ref_name }}
+          tag_name: ${{ steps.resolve-tag.outputs.release_tag }}
+          name: 软件设计师刷题与智能复习工作台 ${{ steps.resolve-tag.outputs.release_tag }}
+          target_commitish: ${{ github.sha }}
+          body_path: RELEASE_NOTES.md
           files: |
             dist/portable/RuankaoExam-Portable-*.zip
             dist/portable/RuankaoExam-SingleExe-*.exe
             dist/portable/SHA256SUMS.txt
+          fail_on_unmatched_files: true
           generate_release_notes: true
