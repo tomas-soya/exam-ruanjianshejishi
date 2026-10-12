@@ -25,6 +25,10 @@
       "sha256": "24a8b076468258d93ff89dcfda34adfdf1c60b04def2fc99d877e040b3e510a0"
     },
     {
+      "path": ".github/workflows/release.yml",
+      "sha256": "320b530b84930c56209fabf7d14161a62a111fcec7f8e0b0eb1a68d04c306562"
+    },
+    {
       "path": ".gitignore",
       "sha256": "c7522b5a8d343f95d9083c1e2457fcb6b802073725730bd86eb21682f5eec3b3"
     },
@@ -42,7 +46,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "9a9c0d189d06863dba1c010e2b1190f2d48873de9857c7b02e50fba4ccfafdbd"
+      "sha256": "d1064f1073b3b0d1207bb1736cff5deba85ad5be0f1d94d5db779ef69d33d88c"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",

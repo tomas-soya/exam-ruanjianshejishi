@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.17.1
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.17.1'
+
+      - name: Run test suite and release verification
+        run: |
+          npm test
+          npm run verify
+
+      - name: Build portable package and single-file EXE
+        shell: pwsh
+        run: |
+          $dateTag = Get-Date -Format "yyyyMMdd"
+          $env:PORTABLE_DATE = "$dateTag"
+          node scripts/build-portable.mjs
+          node scripts/portable/verify-portable.mjs
+
+      - name: Generate Checksums
+        shell: pwsh
+        run: |
+          Get-FileHash dist/portable/*.zip, dist/portable/*.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } | Out-File -FilePath dist/portable/SHA256SUMS.txt -Encoding utf8
+          Get-Content dist/portable/SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: 软件设计师刷题与智能复习工作台 ${{ github.ref_name }}
+          files: |
+            dist/portable/*.zip
+            dist/portable/*.exe
+            dist/portable/SHA256SUMS.txt
+          generate_release_notes: true
