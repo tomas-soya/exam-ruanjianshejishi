@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('node:fs');
+const path=require('node:path');
+const {createHash}=require('node:crypto');
+const root=path.resolve(__dirname,'..');
+const {publicFiles}=require('./public-files.cjs');
+const {QuestionBankLoader}=require('../apps/exam-service/src/bank/question-loader');
+const bank=new QuestionBankLoader(path.join(root,'题库'));
+const files=publicFiles(root).map(file=>({path:file,sha256:createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')}));
+const manifest={format:'ruankao-release-v1',bank:{objective:1560,caseGroups:162,physicalPapers:52,visiblePapers:bank.listVerifiedPapers().length,images:files.filter(f=>f.path.startsWith('题库/assets/')).length},files};
+fs.writeFileSync(path.join(root,'release-manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+console.log(`Updated public manifest: ${files.length} files.`);

@@ -1,0 +1,20 @@
+{
+  "name": "@ruankao/exam-service",
+  "version": "1.0.0",
+  "description": "Windows Local Exam Backend Service with SQLite Persistence and Answer Isolation",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test ../../test/*.test.cjs"
+  },
+  "dependencies": {
+    "@ruankao/exam-contracts": "file:../exam-contracts"
+  },
+  "keywords": [
+    "ruankao",
+    "exam-service",
+    "sqlite",
+    "backend"
+  ],
+  "author": "tomas-soya",
+  "license": "MIT"
+}

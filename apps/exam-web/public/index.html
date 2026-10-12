@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>软考刷题与备考工作台 - 软件设计师</title>
+  <link rel="stylesheet" href="/css/style.css?v=1.0.0">
+  <script src="/project-info.js?v=1.0.0" defer></script>
+</head>
+<body>
+  <div id="root"></div>
+  <footer class="project-footer" aria-label="项目信息">
+    <p>作者：<a id="project-author" href="https://github.com/tomas-soya" target="_blank" rel="noopener noreferrer">tomas-soya</a> · <a id="project-repository" href="https://github.com/tomas-soya/exam-ruanjianshejishi" target="_blank" rel="noopener noreferrer">GitHub 仓库</a></p>
+    <p>该项目完全免费开源，如果你是花钱买到的，那么你被骗了</p>
+    <p>应用代码采用 MIT 许可证；试题、插图及引用内容的权利归原权利人所有。答案、解析和 AI 判分仅供学习参考，不保证准确性或考试结果。AI 服务商可能另行收费。</p>
+    <p><a id="project-issues" href="https://github.com/tomas-soya/exam-ruanjianshejishi/issues" target="_blank" rel="noopener noreferrer">对题目、刷题功能有任何建议，欢迎提交issue</a></p>
+  </footer>
+
+  <!-- 1. Offline Standalone React Runtime -->
+  <script src="/vendor/react.production.min.js?v=1.0.0"></script>
+  <script src="/vendor/react-dom.production.min.js?v=1.0.0"></script>
+
+  <!-- 2. Utilities & Client API -->
+  <script src="/src/utils/dom.js?v=1.0.0"></script>
+  <script src="/src/api/client.js?v=1.0.0"></script>
+
+  <!-- 3. Components -->
+  <script src="/src/components/Header.js?v=1.0.0"></script>
+  <script src="/src/components/FilterBar.js?v=1.0.0"></script>
+  <script src="/src/components/CodeBlock.js?v=1.0.0"></script>
+  <script src="/src/components/ImageModal.js?v=1.0.0"></script>
+  <script src="/src/components/ObjectiveQuestion.js?v=1.0.0"></script>
+  <script src="/src/components/CaseQuestion.js?v=1.0.0"></script>
+  <script src="/src/components/AnswerSheet.js?v=1.0.0"></script>
+  <script src="/src/components/MaterialModal.js?v=1.0.0"></script>
+  <script src="/src/components/ReportView.js?v=1.0.0"></script>
+  <script src="/src/components/PaperList.js?v=1.0.0"></script>
+  <script src="/src/components/ChapterList.js?v=1.0.0"></script>
+  <script src="/src/components/WrongQuestionsView.js?v=1.0.0"></script>
+  <script src="/src/components/ReviewQueueView.js?v=1.0.0"></script>
+  <script src="/src/components/HistoryView.js?v=1.0.0"></script>
+  <script src="/src/components/PersonalMaterialsView.js?v=1.0.0"></script>
+  <script src="/src/components/ChatAssistant.js?v=1.0.0"></script>
+  <script src="/src/components/SettingsModal.js?v=1.0.0"></script>
+
+  <!-- 4. App & Entry -->
+  <script src="/src/App.js?v=1.0.0"></script>
+  <script src="/src/index.js?v=1.0.0"></script>
+</body>
+</html>

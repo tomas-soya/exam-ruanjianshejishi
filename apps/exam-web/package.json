@@ -1,0 +1,21 @@
+{
+  "name": "@ruankao/exam-web",
+  "version": "1.0.0",
+  "description": "Windows Local Exam Web Practice Interface (React + Pure Markdown + Strict Answer Isolation)",
+  "main": "server.js",
+  "scripts": {
+    "test": "node --test ../../test/*.test.cjs",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@ruankao/exam-contracts": "file:../exam-contracts"
+  },
+  "keywords": [
+    "ruankao",
+    "exam-web",
+    "react",
+    "offline-practice"
+  ],
+  "author": "tomas-soya",
+  "license": "MIT"
+}

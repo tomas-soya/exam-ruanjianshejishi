@@ -1,0 +1,10 @@
+name: 功能建议
+description: 提出刷题与复习功能建议
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景与建议
+      description: 描述你希望完成什么，以及当前遇到的困难。
+    validations:
+      required: true

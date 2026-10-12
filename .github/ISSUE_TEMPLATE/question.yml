@@ -1,0 +1,16 @@
+name: 题目、答案或图片问题
+description: 报告题干、解析、判分或插图问题
+body:
+  - type: input
+    id: question
+    attributes:
+      label: 题号与卷名
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: 问题与预期结果
+      description: 请附推导或依据。不要上传个人数据库、API Key 或 Token。
+    validations:
+      required: true
