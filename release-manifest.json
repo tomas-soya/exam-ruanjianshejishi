@@ -26,7 +26,7 @@
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "320b530b84930c56209fabf7d14161a62a111fcec7f8e0b0eb1a68d04c306562"
+      "sha256": "56c8693773315fc2d42c831cc8ec781639c4fba53f5eeea0d56f7cc414917dfc"
     },
     {
       "path": ".gitignore",
@@ -46,7 +46,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "d1064f1073b3b0d1207bb1736cff5deba85ad5be0f1d94d5db779ef69d33d88c"
+      "sha256": "1f1d47da608a0cca661c7bae87df4b1ce0abeb634d3d4900dfb6eb7706d7aac6"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -390,7 +390,7 @@
     },
     {
       "path": "scripts/build-portable.mjs",
-      "sha256": "efe410b8b67b05fcff5b75375f3308599823cf442ee32ee3e69ef6b7930ff309"
+      "sha256": "6b83e11227445d0ab2ac4000b47c5afd8b536c4fc71f107f9c58f8f090943b44"
     },
     {
       "path": "scripts/portable/Launcher.cs",

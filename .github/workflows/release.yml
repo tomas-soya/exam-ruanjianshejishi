@@ -38,7 +38,7 @@ jobs:
       - name: Generate Checksums
         shell: pwsh
         run: |
-          Get-FileHash dist/portable/*.zip, dist/portable/*.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } | Out-File -FilePath dist/portable/SHA256SUMS.txt -Encoding utf8
+          Get-FileHash dist/portable/RuankaoExam-Portable-*.zip, dist/portable/RuankaoExam-SingleExe-*.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } | Out-File -FilePath dist/portable/SHA256SUMS.txt -Encoding utf8
           Get-Content dist/portable/SHA256SUMS.txt
 
       - name: Create GitHub Release
@@ -47,7 +47,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: 软件设计师刷题与智能复习工作台 ${{ github.ref_name }}
           files: |
-            dist/portable/*.zip
-            dist/portable/*.exe
+            dist/portable/RuankaoExam-Portable-*.zip
+            dist/portable/RuankaoExam-SingleExe-*.exe
             dist/portable/SHA256SUMS.txt
           generate_release_notes: true

@@ -241,6 +241,8 @@ if (fs.existsSync(cscPath) && fs.existsSync(singleExeCs) && fs.existsSync(zipFil
       { stdio: 'inherit' }
     );
     const exeStat = fs.statSync(singleExePath);
+    const singleExeAsciiPath = path.join(distRoot, `RuankaoExam-SingleExe-${buildDateTag}.exe`);
+    fs.copyFileSync(singleExePath, singleExeAsciiPath);
     console.log(`   -> 单文件 exe 封装完成: ${(exeStat.size / (1024 * 1024)).toFixed(2)} MB`);
   } catch (err) {
     console.warn('   -> 单文件 exe 封装失败:', err.message);
