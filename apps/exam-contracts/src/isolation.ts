@@ -64,12 +64,23 @@ export function assertStrictAnswerIsolation(obj: any, path = 'root'): void {
 function isExamStemImage(img: any): boolean {
   if (!img) return false;
   if (img.type && img.type !== 'stem') return false;
+  if (img.owner && img.owner !== 'stem' && !/^option:[A-D]$/.test(img.owner) && !/^subquestion:/.test(img.owner)) return false;
   const url = String(img.source_url || img.sourceUrl || '').toLowerCase();
   const localPath = String(img.local_path || img.localPath || '').toLowerCase();
   if (url.includes('avatars.githubusercontent.com') || url.includes('/avatar') || localPath.includes('/avatar')) {
     return false;
   }
   return true;
+}
+
+function normalizeStemAsset(img: any): QuestionAsset | null {
+  if (!isExamStemImage(img)) return null;
+  return {
+    type: 'stem' as const,
+    localPath: img.local_path || img.localPath,
+    sha256: img.sha256,
+    sourceUrl: img.source_url || img.sourceUrl
+  };
 }
 
 function normalizeStemCodeBlock(cb: any): QuestionCodeBlock | null {
@@ -83,7 +94,7 @@ function normalizeStemCodeBlock(cb: any): QuestionCodeBlock | null {
   if (cb.type && cb.type !== 'stem') return null;
   return {
     type: 'stem' as const,
-    code: cb.code || '',
+    code: cb.code || cb.content || '',
     language: cb.language
   };
 }
@@ -110,10 +121,17 @@ export function sanitizeObjectiveQuestion(raw: any): SanitizedObjectiveQuestion 
     : [];
 
   const options: QuestionOption[] = Array.isArray(raw.options)
-    ? raw.options.map((opt: any) => ({
-        key: String(opt.key).trim().toUpperCase(),
-        text: String(opt.text)
-      }))
+    ? raw.options.map((opt: any) => {
+        const key = String(opt.key).trim().toUpperCase();
+        const assets = Array.isArray(opt.images) ? opt.images : (typeof opt.image === 'string' ? [{ type: 'stem', local_path: opt.image }] : []);
+        const images = assets.filter((asset: any) => isExamStemImage(asset) && (!asset.owner || asset.owner === 'stem' || asset.owner === 'option:' + key)).map((asset: any) => ({
+          type: 'stem' as const,
+          localPath: asset.local_path || asset.localPath,
+          sha256: asset.sha256,
+          sourceUrl: asset.source_url || asset.sourceUrl
+        }));
+        return { key, text: String(opt.text ?? ''), ...(images.length ? { images } : {}) };
+      })
     : [];
 
   const sanitized: SanitizedObjectiveQuestion = {
@@ -166,11 +184,21 @@ export function sanitizeCaseQuestion(raw: any): SanitizedCaseQuestion {
     chapter: raw.chapter || '未分类',
     sourceAnchor: raw.source_anchor || raw.sourceAnchor || '',
     sharedStem: raw.shared_stem || raw.sharedStem || '',
-    subQuestions: Array.isArray(raw.subquestions) ? raw.subquestions.map((sub: any, index: number) => ({
-      id: `sub${index + 1}`,
-      title: `【问题 ${index + 1}】`,
-      stem: String(sub.stem || '').trim() === String(raw.shared_stem || '').trim() ? '' : String(sub.stem || '')
-    })) : [],
+    subQuestions: Array.isArray(raw.subquestions) ? raw.subquestions.map((sub: any, index: number) => {
+      const subImages = Array.isArray(sub.images)
+        ? sub.images.map(normalizeStemAsset).filter((img): img is QuestionAsset => img !== null)
+        : [];
+      const subCodeBlocks = Array.isArray(sub.code_blocks)
+        ? sub.code_blocks.map(normalizeStemCodeBlock).filter((cb): cb is QuestionCodeBlock => cb !== null)
+        : [];
+      return {
+        id: sub.id || `sub${index + 1}`,
+        title: sub.title || `【问题 ${index + 1}】`,
+        stem: String(sub.stem || '').trim() === String(raw.shared_stem || '').trim() ? '' : String(sub.stem || ''),
+        ...(subImages.length ? { images: subImages } : {}),
+        ...(subCodeBlocks.length ? { codeBlocks: subCodeBlocks } : {})
+      };
+    }) : [],
     codeBlocks,
     images
   };

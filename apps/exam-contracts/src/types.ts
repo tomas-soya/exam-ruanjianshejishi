@@ -20,6 +20,7 @@ export type SubjectType = 'objective' | 'case';
 export interface QuestionOption {
   key: string;  // e.g. "A", "B", "C", "D"
   text: string;
+  images?: QuestionAsset[]; // Stem assets belonging to this option, never solutions
 }
 
 export type AssetType = 'stem' | 'solution';
@@ -62,6 +63,14 @@ export interface SanitizedObjectiveQuestion {
   images: QuestionAsset[];         // Only type === 'stem'
 }
 
+export interface SanitizedSubQuestion {
+  id: string;
+  title: string;
+  stem: string;
+  images?: QuestionAsset[];
+  codeBlocks?: QuestionCodeBlock[];
+}
+
 /**
  * Sanitized Case Question: Safe to send to client BEFORE submission.
  * Completely excludes solution_and_analysis, solution code blocks, and solution images.
@@ -76,7 +85,7 @@ export interface SanitizedCaseQuestion {
   chapter: string;
   sourceAnchor: string;
   sharedStem: string;
-  subQuestions?: Array<{ id: string; title: string; stem: string }>;
+  subQuestions?: SanitizedSubQuestion[];
   codeBlocks: QuestionCodeBlock[]; // Only type === 'stem'
   images: QuestionAsset[];         // Only type === 'stem'
 }

@@ -184,8 +184,10 @@
             if (isStandard) optionClass += ' is-standard-option';
             if (isWrongPick) optionClass += ' is-wrong-pick';
 
-            const optImage = opt.image || (opt.images && opt.images[0] && (opt.images[0].localPath || opt.images[0].sourceUrl));
-            const optImgSrc = optImage ? normalizeAssetUrl(optImage) : null;
+            const optImages = (Array.isArray(opt.images) ? opt.images : (opt.image ? [{ localPath: opt.image }] : []))
+              .filter(asset => asset && (!asset.type || asset.type === 'stem'))
+              .map(asset => normalizeAssetUrl(asset.localPath || asset.local_path || asset.sourceUrl || asset.source_url))
+              .filter(Boolean);
 
             return button({
               key: opt.key,
@@ -204,7 +206,8 @@
             },
               span({ className: `option-key ${isSelected ? 'selected' : ''}` }, opt.key),
               span({ className: 'option-text' }, opt.text),
-              optImgSrc && div({
+              optImages.map((optImgSrc, imageIndex) => div({
+                key: imageIndex,
                 className: 'image-thumbnail-container option-image-container',
                 onClick: (e) => {
                   e.stopPropagation();
@@ -217,7 +220,7 @@
                   className: 'stem-image-thumb option-image-thumb'
                 }),
                 span({ className: 'img-zoom-hint' }, '🔍 点击放大附图')
-              ),
+              )),
               isStandard && span({ className: 'option-badge-standard' }, '标准答案'),
               isWrongPick && span({ className: 'option-badge-wrong' }, '你的选择')
             );

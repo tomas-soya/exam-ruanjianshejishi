@@ -45,12 +45,23 @@ function assertStrictAnswerIsolation(obj, path = 'root') {
 function isExamStemImage(img) {
   if (!img) return false;
   if (img.type && img.type !== 'stem') return false;
+  if (img.owner && img.owner !== 'stem' && !/^option:[A-D]$/.test(img.owner) && !/^subquestion:/.test(img.owner)) return false;
   const url = String(img.source_url || img.sourceUrl || '').toLowerCase();
   const localPath = String(img.local_path || img.localPath || '').toLowerCase();
   if (url.includes('avatars.githubusercontent.com') || url.includes('/avatar') || localPath.includes('/avatar')) {
     return false;
   }
   return true;
+}
+
+function normalizeStemAsset(img) {
+  if (!isExamStemImage(img)) return null;
+  return {
+    type: 'stem',
+    localPath: img.local_path || img.localPath,
+    sha256: img.sha256,
+    sourceUrl: img.source_url || img.sourceUrl
+  };
 }
 
 function normalizeStemCodeBlock(cb) {
@@ -64,7 +75,7 @@ function normalizeStemCodeBlock(cb) {
   if (cb.type && cb.type !== 'stem') return null;
   return {
     type: 'stem',
-    code: cb.code || '',
+    code: cb.code || cb.content || '',
     language: cb.language
   };
 }
@@ -88,10 +99,17 @@ function sanitizeObjectiveQuestion(raw) {
     : [];
 
   const options = Array.isArray(raw.options)
-    ? raw.options.map((opt) => ({
-        key: String(opt.key).trim().toUpperCase(),
-        text: String(opt.text)
-      }))
+    ? raw.options.map((opt) => {
+        const key = String(opt.key).trim().toUpperCase();
+        const assets = Array.isArray(opt.images) ? opt.images : (typeof opt.image === 'string' ? [{ type: 'stem', local_path: opt.image }] : []);
+        const images = assets.filter((asset) => isExamStemImage(asset) && (!asset.owner || asset.owner === 'stem' || asset.owner === 'option:' + key)).map((asset) => ({
+          type: 'stem',
+          localPath: asset.local_path || asset.localPath,
+          sha256: asset.sha256,
+          sourceUrl: asset.source_url || asset.sourceUrl
+        }));
+        return { key, text: String(opt.text ?? ''), ...(images.length ? { images } : {}) };
+      })
     : [];
 
   const sanitized = {
@@ -140,11 +158,25 @@ function sanitizeCaseQuestion(raw) {
     chapter: raw.chapter || '未分类',
     sourceAnchor: raw.source_anchor || raw.sourceAnchor || '',
     sharedStem: raw.shared_stem || raw.sharedStem || '',
-    subQuestions: Array.isArray(raw.subquestions) ? raw.subquestions.map((sub, index) => ({
-      id: `sub${index + 1}`,
-      title: `【问题 ${index + 1}】`,
-      stem: String(sub.stem || '').trim() === String(raw.shared_stem || '').trim() ? '' : String(sub.stem || '')
-    })) : [],
+    subQuestions: Array.isArray(raw.subquestions) ? raw.subquestions.map((sub, index) => {
+      const subImages = Array.isArray(sub.images)
+        ? sub.images
+            .map(normalizeStemAsset)
+            .filter((img) => img !== null)
+        : [];
+      const subCodeBlocks = Array.isArray(sub.code_blocks)
+        ? sub.code_blocks
+            .map(normalizeStemCodeBlock)
+            .filter((cb) => cb !== null)
+        : [];
+      return {
+        id: sub.id || `sub${index + 1}`,
+        title: sub.title || `【问题 ${index + 1}】`,
+        stem: String(sub.stem || '').trim() === String(raw.shared_stem || '').trim() ? '' : String(sub.stem || ''),
+        ...(subImages.length ? { images: subImages } : {}),
+        ...(subCodeBlocks.length ? { codeBlocks: subCodeBlocks } : {})
+      };
+    }) : [],
     codeBlocks,
     images
   };

@@ -203,12 +203,41 @@
         subQuestions.map((sub, idx) => {
           if (visibleSubTab !== idx + 1) return null;
           const textVal = currentAnswers[sub.id] || '';
+          const subCodeBlocks = (sub.codeBlocks || sub.code_blocks || []).filter(cb => !cb.type || cb.type === 'stem');
+          const subImages = (sub.images || []).filter(img => !img.type || img.type === 'stem');
           return div({ key: sub.id, className: 'subquestion-active-panel' },
             div({ className: 'sub-title-bar' },
               span({ className: 'sub-title' }, sub.title),
               span({ className: 'sub-word-count' }, `当前字数：${textVal.length} 字`)
             ),
             sub.stem && p({ className: 'subquestion-stem', style: { whiteSpace: 'pre-wrap' } }, sub.stem),
+            subCodeBlocks.length > 0 && div({ className: 'subquestion-code-blocks' },
+              subCodeBlocks.map((cb, cIdx) =>
+                React.createElement(CodeBlock, {
+                  key: cIdx,
+                  code: cb.code || cb.content,
+                  language: cb.language || 'c',
+                  title: `${sub.title} 代码片段 ${cIdx + 1}`
+                })
+              )
+            ),
+            subImages.length > 0 && div({ className: 'subquestion-images-section' },
+              subImages.map((imgAsset, iIdx) => {
+                const imgSrc = normalizeAssetUrl(imgAsset.localPath || imgAsset.local_path || imgAsset.sourceUrl || imgAsset.source_url);
+                return div({ key: iIdx, className: 'image-thumbnail-container' },
+                  img({
+                    src: imgSrc,
+                    alt: `${sub.title} 附图 ${iIdx + 1}`,
+                    className: 'stem-image-thumb',
+                    onClick: () => setModalImage(imgSrc)
+                  }),
+                  span({
+                    className: 'img-zoom-hint',
+                    onClick: () => setModalImage(imgSrc)
+                  }, '🔍 点击放大查看附图')
+                );
+              })
+            ),
             textarea({
               className: 'subquestion-textarea',
               rows: 7,
