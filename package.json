@@ -9,7 +9,7 @@
   "workspaces": ["apps/exam-contracts", "apps/exam-service", "apps/exam-llm", "apps/exam-web"],
   "scripts": {
     "start": "node apps/exam-service/src/unified-server.js",
-    "test": "node --test test/*.test.cjs",
+    "test": "node --no-warnings --test test/*.test.cjs",
     "verify": "node scripts/verify-release.cjs"
   }
 }

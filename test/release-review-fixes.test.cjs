@@ -135,7 +135,10 @@ test('Review Fix 1: SingleExePackage verifies embedded ZIP SHA-256 marker, upgra
       while (Date.now() < deadline) {
         if (fs.existsSync(logFile)) {
           const text = fs.readFileSync(logFile, 'utf8').trim();
-          if (text) return text;
+          if (text) {
+            Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 150);
+            return text;
+          }
         }
       }
       return null;
@@ -155,7 +158,11 @@ test('Review Fix 1: SingleExePackage verifies embedded ZIP SHA-256 marker, upgra
     migratedDb.close();
     assert.equal(migratedRow.note, 'newest-study-record', 'Must deterministically migrate newest previous data');
   } finally {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    try {
+      if (fs.existsSync(tmpDir)) {
+        fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      }
+    } catch {}
   }
 });
 

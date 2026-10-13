@@ -398,7 +398,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "1639276e4f8ad2d3629d6e9d73c7e2e1e5634d40dc4207c2d9be6b87525df5a1"
+      "sha256": "2e61207a7597917b2cbf3f478ab0930261428baed2e0c7df2d4687221bde2639"
     },
     {
       "path": "scripts/build-portable.mjs",
@@ -458,7 +458,7 @@
     },
     {
       "path": "test/release-review-fixes.test.cjs",
-      "sha256": "e7dc91f79e809543247405df17cb686c1900ce3f831760966f2145a54387ae6a"
+      "sha256": "0968373b3be67551f2584e2bb71a64f45a47a9d1524871417daf14d5a995ce7a"
     },
     {
       "path": "test/review-cards.test.cjs",
