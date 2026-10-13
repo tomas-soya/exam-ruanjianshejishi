@@ -201,7 +201,7 @@ test('R2-F3 & F7: 14 collection declarations removed from real solution_and_anal
 });
 
 test('R2-F4: past exam markdowns synchronized with option images, formulas and zero process traces', (t) => {
-  if (!fs.existsSync('软件设计师复习材料/历年真题')) {
+  if (!fs.existsSync('软件设计师复习材料/历年真题/xisai-paper_58_201111_objective_59.md')) {
     t.skip('Past exam markdowns are only present in development environment');
     return;
   }

@@ -446,7 +446,7 @@
     },
     {
       "path": "test/bank-quality-repaired.test.cjs",
-      "sha256": "b365dc987982969ace20ad745e178023c8178e004c389324e5086bc228090981"
+      "sha256": "55f519f8235106874fb5d8a98357b3da6500da663bbf8c00f62894c909714c52"
     },
     {
       "path": "test/gemini-materials-compatibility.test.cjs",
