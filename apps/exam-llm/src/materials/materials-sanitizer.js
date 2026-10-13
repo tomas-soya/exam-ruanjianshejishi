@@ -66,8 +66,9 @@ function sanitizeGeneratedMarkdown(rawMarkdown, chapterName = '') {
   text = sanitizeMarkdownContent(text);
 
   // 3. Remove accidental raw question IDs (e.g. oq-735cd504c67854131204 or ruankao-sd-*)
-  text = text.replace(/\b(?:(?:oq|cg|ref)-[a-f0-9]{20}|sd-\d{4}-(?:\d{2}|unknown)-(?:objective|case)-[a-f0-9]{10})\b/gi, '相关历年考题');
+  text = text.replace(/malinkang-[a-z0-9\-_]+/gi, '相关历年考题');
   text = text.replace(/ruankao-[a-z0-9\-_]+/gi, '相关认证真题');
+  text = text.replace(/\b(?:oq|cg|job)-[a-z0-9\-_]+/gi, '');
 
   // 4. Extract points and deduplicate
   const lines = text.split('\n');

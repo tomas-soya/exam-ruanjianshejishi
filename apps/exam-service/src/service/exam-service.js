@@ -468,7 +468,7 @@ class ExamService {
         practiceMode: safePracticeMode,
         paperId: canonicalPaperId,
         chapter: null,
-        title: (title || paper.title || '').replace('（补充试题）', ''),
+        title: (title || paper.title || '').replace('（希赛对账版）', ''),
         totalQuestions,
         maxScore
       });
@@ -1692,6 +1692,17 @@ class ExamService {
   initLlmFromSettings() {
     if (!this.db) return;
     try {
+      // Auto-migrate legacy unencrypted llm_config in SQLite to encrypted storage
+      try {
+        const rawRow = this.db.prepare('SELECT value FROM app_settings WHERE key = ?').get('llm_config');
+        if (rawRow && typeof rawRow.value === 'string' && !rawRow.value.startsWith('enc:v1:')) {
+          const parsed = JSON.parse(rawRow.value);
+          if (parsed && typeof parsed === 'object') {
+            settingsRepo.setSetting(this.db, 'llm_config', parsed);
+          }
+        }
+      } catch {}
+
       const saved = settingsRepo.getSetting(this.db, 'llm_config');
       if (saved && typeof saved === 'object') {
         this.applyLlmConfig(saved);
@@ -1759,8 +1770,8 @@ class ExamService {
       runtime = loadRuntimeConfig();
     } catch {}
 
-    const effectiveEndpoint = (saved && saved.endpoint) || runtime.endpoint || '';
-    const effectiveModel = (saved && saved.model) || runtime.model || '';
+    const effectiveEndpoint = (saved && saved.endpoint) || runtime.endpoint || 'https://api.deepseek.com/v1';
+    const effectiveModel = (saved && saved.model) || runtime.model || 'deepseek-chat';
     const effectiveTimeoutMs = (saved && saved.timeoutMs) || runtime.timeoutMs || 30000;
     const effectiveApiKey = (saved && saved.apiKey !== undefined && saved.apiKey !== '') ? saved.apiKey : (runtime.apiKey || '');
 

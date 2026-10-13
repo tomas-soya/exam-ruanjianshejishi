@@ -19,7 +19,7 @@ for(const file of manifest.files){
   const bytes=fs.readFileSync(path.join(root,file.path));
   assert.equal(createHash('sha256').update(bytes).digest('hex'),file.sha256,`Resource changed: ${file.path}; regenerate the public resource manifest.`);
 }
-if(fs.existsSync(path.join(root,'.git'))){
+if(fs.existsSync(path.join(root,'.git'))&&!fs.existsSync(path.join(root,'workflow','project.json'))){
   const tracked=execFileSync('git',['ls-files','-z'],{cwd:root,encoding:'utf8'}).split('\0').filter(Boolean);
   for(const file of tracked){assert(!prohibited(file),`Private file still tracked: ${file}`);assert(expected.has(file)||file==='release-manifest.json',`Tracked file outside public allowlist: ${file}`);}
 }

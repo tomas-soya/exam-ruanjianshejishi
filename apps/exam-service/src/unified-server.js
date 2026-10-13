@@ -12,7 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
-const { createApp, isAllowedOrigin, getCorsHeaders } = require('./server');
+const { createApp, isLocalAddress, isLanAddress, isAllowedHost, isAllowedOrigin, getCorsHeaders } = require('./server');
 const { QuestionBankLoader } = require('./bank/question-loader');
 const { MaterialSyncManager } = require('./material/material-sync-manager');
 const { createDatabase, closeDatabase } = require('./db/connection');
@@ -123,7 +123,7 @@ function getLanAddresses() {
 /**
  * Safely stream a static file with correct MIME type and caching headers.
  */
-function serveStaticFile(req, res, filePath) {
+function serveStaticFile(req, res, filePath, { allowLanAccess = false, expectedPort = null } = {}) {
   if (!fs.existsSync(filePath)) {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('404 Not Found');
@@ -139,7 +139,7 @@ function serveStaticFile(req, res, filePath) {
 
   const ext = path.extname(filePath).toLowerCase();
   const mime = MIME_TYPES[ext] || 'application/octet-stream';
-  const cors = getCorsHeaders(req, { allowLanAccess: true });
+  const cors = getCorsHeaders(req, { allowLanAccess, expectedPort });
   res.writeHead(200, {
     'Content-Type': mime,
     'Content-Length': stat.size,
@@ -156,6 +156,7 @@ async function startUnifiedServer(options = {}) {
   const paths = resolveAppPaths();
   const port = parseInt(options.port ?? process.env.PORT ?? '3124', 10);
   const host = options.host || process.env.HOST || '127.0.0.1';
+  const allowLanAccess = Boolean(options.allowLanAccess ?? !isLocalAddress(host));
 
   // Ensure data directory exists
   if (!fs.existsSync(paths.dataDir)) {
@@ -225,7 +226,7 @@ async function startUnifiedServer(options = {}) {
     bankLoader,
     materialSyncManager,
     autoStartSync: false,
-    allowLanAccess: true,
+    allowLanAccess,
     exitOnShutdown: false,
     onShutdown: performGracefulShutdown
   });
@@ -240,13 +241,40 @@ async function startUnifiedServer(options = {}) {
 
   // Master Unified Server dispatcher
   const server = http.createServer(async (req, res) => {
+    const remote = req.socket.remoteAddress;
+    if (remote && !isLocalAddress(remote) && !(allowLanAccess && isLanAddress(remote))) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        success: false,
+        error: {
+          code: 'FORBIDDEN_REMOTE_ACCESS',
+          message: allowLanAccess ? '仅允许本机或局域网地址访问' : '仅允许本机地址访问'
+        }
+      }));
+      return;
+    }
+
+    const activePort = req.socket?.localPort || server.address()?.port || port;
+    const hostHeader = req.headers ? req.headers.host : undefined;
+    if (hostHeader !== undefined && !isAllowedHost(hostHeader, { allowLanAccess, expectedPort: activePort })) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        success: false,
+        error: {
+          code: 'FORBIDDEN_HOST',
+          message: '禁止非法的 Host 请求头访问'
+        }
+      }));
+      return;
+    }
+
     const rawUrl = req.url || '/';
-    const parsedUrl = new URL(rawUrl, `http://${host}:${port}`);
+    const parsedUrl = new URL(rawUrl, `http://127.0.0.1:${activePort}`);
     const pathname = parsedUrl.pathname;
 
     const origin = req.headers ? req.headers.origin : null;
-    const isOriginAllowed = isAllowedOrigin(origin, { allowLanAccess: true });
-    const corsHeaders = getCorsHeaders(req, { allowLanAccess: true });
+    const isOriginAllowed = isAllowedOrigin(origin, { allowLanAccess, expectedPort: activePort });
+    const corsHeaders = getCorsHeaders(req, { allowLanAccess, expectedPort: activePort });
 
     // 1. CORS Preflight
     if (req.method === 'OPTIONS') {
@@ -260,6 +288,18 @@ async function startUnifiedServer(options = {}) {
       return;
     }
 
+    if (origin && !isOriginAllowed) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        success: false,
+        error: {
+          code: 'FORBIDDEN_CROSS_ORIGIN',
+          message: '禁止不可信的跨站来源访问'
+        }
+      }));
+      return;
+    }
+
     // 2. Web Health Check Endpoint
     if (pathname === '/api/v1/web-health' && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders });
@@ -267,7 +307,7 @@ async function startUnifiedServer(options = {}) {
         status: 'ok',
         boundAddress: server.address()?.address || null,
         mode: paths.isPortable ? 'portable-unified' : 'workspace-unified',
-        port
+        port: activePort
       }));
       return;
     }
@@ -286,7 +326,7 @@ async function startUnifiedServer(options = {}) {
         return;
       }
 
-      return serveStaticFile(req, res, resolvedAssetPath);
+      return serveStaticFile(req, res, resolvedAssetPath, { allowLanAccess, expectedPort: activePort });
     }
 
     // 4. API Endpoints Dispatch (/api/v1/*)
@@ -309,7 +349,7 @@ async function startUnifiedServer(options = {}) {
       targetFilePath = path.join(webPublicDir, 'index.html');
     }
 
-    serveStaticFile(req, res, targetFilePath);
+    serveStaticFile(req, res, targetFilePath, { allowLanAccess, expectedPort: activePort });
   });
 
   unifiedServerInstance = server;

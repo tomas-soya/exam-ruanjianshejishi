@@ -257,6 +257,8 @@ class GatewayAdapter {
     maxTokens = 4096,
     timeoutMs = this.timeoutMs,
     responseFormat = null,
+    thinkingMode = null,
+    reasoningEffort = null,
     signal = null
   }) {
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -273,6 +275,14 @@ class GatewayAdapter {
 
     if (responseFormat) {
       requestBody.response_format = responseFormat;
+    }
+    if (thinkingMode !== null) {
+      if (!['enabled', 'disabled'].includes(thinkingMode)) throw new Error('GatewayAdapter: invalid thinking mode');
+      requestBody.thinking = { type: thinkingMode };
+    }
+    if (reasoningEffort !== null) {
+      if (!['none', 'low', 'high', 'max'].includes(reasoningEffort)) throw new Error('GatewayAdapter: invalid reasoning effort');
+      requestBody.reasoning_effort = reasoningEffort;
     }
 
     let lastError = null;

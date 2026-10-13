@@ -2,10 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const workspaceRoot = path.resolve(__dirname, '..');
+const require = createRequire(import.meta.url);
+const { publicFiles } = require('./public-files.cjs');
+const allowedPublicFiles = new Set(publicFiles(workspaceRoot).map(f => f.replace(/\\/g, '/')));
 
 const distRoot = path.join(workspaceRoot, 'dist', 'portable');
 const buildDateTag = process.env.PORTABLE_DATE || '20261012';
@@ -35,10 +39,11 @@ fs.mkdirSync(backupsDir, { recursive: true });
 
 // 安全公共文件过滤规则（彻底杜绝敏感文件、私钥、数据库、凭据等进入发布包）
 const FORBIDDEN_EXTENSIONS = new Set([
-  '.db', '.db-wal', '.db-shm', '.sqlite', '.sqlite3',
+  '.db', '.db-wal', '.db-shm', '.db-journal', '.sqlite', '.sqlite3',
   '.pem', '.key', '.pfx', '.p12', '.crt', '.cer',
-  '.cs', '.tmp', '.log'
+  '.cs', '.tmp', '.log', '.bak'
 ]);
+const FORBIDDEN_DB_PATTERN = /\.(?:db|sqlite|sqlite3)(?:-[a-z0-9]+|\.[a-z0-9]+)*$/i;
 const FORBIDDEN_DIR_OR_FILE_NAMES = new Set([
   'node_modules', '.git', 'test', 'data', 'backups',
   'workflow', 'browser-workbench', 'sources', 'quarantine',
@@ -49,9 +54,14 @@ function isSafePublicEntry(srcPath, entry) {
   const name = entry.name;
   if (FORBIDDEN_DIR_OR_FILE_NAMES.has(name)) return false;
   if (name.startsWith('.env') || name.startsWith('.tmp')) return false;
+  if (FORBIDDEN_DB_PATTERN.test(name)) return false;
   if (entry.isFile()) {
     const ext = path.extname(name).toLowerCase();
     if (FORBIDDEN_EXTENSIONS.has(ext)) return false;
+    const relToRoot = path.relative(workspaceRoot, srcPath).replace(/\\/g, '/');
+    if (!relToRoot.startsWith('..') && !allowedPublicFiles.has(relToRoot)) {
+      return false;
+    }
   }
   return true;
 }
@@ -89,6 +99,23 @@ const nodeLicense = path.join(workspaceRoot, 'scripts', 'portable', `NODE-LICENS
 if (!fs.existsSync(nodeLicense)) throw new Error(`请先准备与 ${process.version} 匹配的 Node.js 许可证文件`);
 fs.copyFileSync(nodeLicense, path.join(portableAppDir, 'NODE-LICENSE.txt'));
 for (const name of ['LICENSE', 'CONTENT_NOTICE.md', 'THIRD_PARTY_NOTICES.md']) fs.copyFileSync(path.join(workspaceRoot,name),path.join(portableAppDir,name));
+
+const pkgJson = JSON.parse(fs.readFileSync(path.join(workspaceRoot, 'package.json'), 'utf8'));
+let gitCommit = 'unknown';
+try {
+  gitCommit = execSync('git rev-parse HEAD', { cwd: workspaceRoot, encoding: 'utf8' }).trim();
+} catch {}
+fs.writeFileSync(
+  path.join(portableAppDir, '.package-meta.json'),
+  JSON.stringify({
+    name: pkgJson.name,
+    version: pkgJson.version,
+    buildDateTag,
+    gitCommit,
+    nodeVersion: process.version
+  }, null, 2) + '\n',
+  'utf8'
+);
 
 // 复制备份命令行工具
 const backupCliSrc = path.join(workspaceRoot, 'scripts', 'portable', 'backup-cli.js');
@@ -244,7 +271,7 @@ const readmeContent = `软件设计师刷题与智能复习工作台
 自动判分仅供自测；回忆卷、来源答案争议与规则评分请结合解析核对。
 
 学习数据库位于 data/app.db，设置中可导出和导入备份。
-备份可能含 API 密钥；密钥未加密保存，不要公开数据库或附到 issue。
+API 密钥使用本机随机密钥文件（~/.ruankao-exam/vault.key）或 EXAM_APP_SECRET 加密存储；请妥善保管数据库备份，不要公开数据库或附到 issue。
 旧题号升级前自动生成本地备份，保留作答、分数、时间戳和配置。
 
 默认仅本机访问。在可信局域网中，启动前设置 HOST=0.0.0.0，可通过控制台的局域网地址访问。
@@ -257,6 +284,9 @@ fs.writeFileSync(path.join(portableAppDir, 'README_使用说明.txt'), readmeCon
 // 8. 打包为绿色免安装 Zip 压缩包
 console.log('[8/8] 正在打包压缩为发布归档包 (RuankaoExam-Portable-v1.0.zip)...');
 try {
+  if (fs.existsSync(zipFile)) {
+    fs.unlinkSync(zipFile);
+  }
   // .NET archive API avoids a dependency on the optional PowerShell Archive module.
   const literal = value => `'${value.replaceAll("'", "''")}'`;
   execFileSync('powershell', ['-NoProfile', '-Command',

@@ -15,7 +15,7 @@
 })(typeof self !== 'undefined' ? self : this, function (React, DOM) {
   'use strict';
 
-  const { div, span, button, h2, h3, h4, p, ul, li, label, input, pre, code } = DOM;
+  const { div, span, button, h2, h3, h4, p, ul, li, label, input, pre, code, details, summary } = DOM;
   const { useState, useEffect } = React;
 
   const DEFAULT_STATIC_CHAPTERS = [
@@ -43,6 +43,25 @@
     { id: '07-UML状态图与状态转换', title: '07-UML状态图与状态转换', doc: '案例题/07-UML状态图与状态转换.md', subject: 'case', order: 20 },
     { id: '08-算法设计与分析', title: '08-算法设计与分析', doc: '案例题/08-算法设计与分析.md', subject: 'case', order: 21 }
   ];
+
+  // Split the final answer even when the prompt ends in an instruction or contains parentheses.
+  function splitSelfCheck(text) {
+    const value = text.trim();
+    if (!/[）)]$/.test(value)) return null;
+    let depth = 0;
+    for (let index = value.length - 1; index >= 0; index--) {
+      if (/[）)]/.test(value[index])) depth++;
+      else if (/[（(]/.test(value[index])) {
+        depth--;
+        if (depth === 0) {
+          const question = value.slice(0, index).trim();
+          const answer = value.slice(index + 1, -1).trim();
+          return question && answer ? [value, question, answer] : null;
+        }
+      }
+    }
+    return null;
+  }
 
   // Safe inline markdown renderer for both static and dynamic materials
   function renderSafeMarkdown(markdown) {
@@ -75,7 +94,22 @@
           span({ className: 'checklist-text' }, text)
         ));
       } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-        elements.push(li({ key: key++, className: 'md-list-item' }, trimmed.slice(2)));
+        const card = trimmed.slice(2).match(/^【(.+?)】待补：(.*?)；记住：(.*?)；防错：(.*?)；自测：(.*)$/);
+        if (card) {
+          elements.push(div({ key: key++, className: 'review-memory-card' },
+            h4({}, card[1]),
+            ...['待补', '记住', '防错', '自测'].map((field, index) => {
+              const selfCheck = index === 3 ? splitSelfCheck(card[index + 2]) : null;
+              if (selfCheck) return div({ key: field, className: 'review-card-field review-card-field-3' },
+                p({}, span({ className: 'review-card-label' }, '自测：'), selfCheck[1]),
+                details({ className: 'review-card-answer' }, summary({}, '思考后展开答案'), p({}, selfCheck[2])));
+              return p({ key: field, className: `review-card-field review-card-field-${index}` },
+                span({ className: 'review-card-label' }, `${field}：`), card[index + 2]);
+            })
+          ));
+        } else {
+          elements.push(li({ key: key++, className: 'md-list-item' }, trimmed.slice(2)));
+        }
       } else if (/^\d+\./.test(trimmed)) {
         elements.push(li({ key: key++, className: 'md-list-numbered' }, trimmed.replace(/^\d+\.\s*/, '')));
       } else if (trimmed.startsWith('> ')) {
@@ -118,6 +152,9 @@
     const [dynamicDetail, setDynamicDetail] = useState(null);
     const [isDynamicLoading, setIsDynamicLoading] = useState(false);
     const [retryMessage, setRetryMessage] = useState(null);
+    const [chapterMaterials, setChapterMaterials] = useState([]);
+    const [showChapterSection, setShowChapterSection] = useState(false);
+    const [retryingChapterKey, setRetryingChapterKey] = useState(null);
 
     // Load static catalog on mount
     useEffect(() => {
@@ -163,7 +200,7 @@
       return () => { isMounted = false; };
     }, [selectedStaticChapter, apiClient]);
 
-    // Load dynamic materials list
+    // Load dynamic materials list and chapter list
     const loadDynamicMaterials = () => {
       if (!apiClient) return;
       apiClient.listDynamicMaterials()
@@ -176,9 +213,20 @@
         .catch(() => {});
     };
 
+    const loadChapterMaterials = () => {
+      if (!apiClient) return;
+      apiClient.listPersonalMaterials()
+        .then(res => {
+          const list = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+          setChapterMaterials(list);
+        })
+        .catch(() => {});
+    };
+
     useEffect(() => {
       if (viewMode === 'dynamic') {
         loadDynamicMaterials();
+        loadChapterMaterials();
       }
     }, [viewMode, apiClient]);
 
@@ -207,22 +255,90 @@
       return () => { isMounted = false; };
     }, [selectedDynamicSubject, apiClient]);
 
+    // Auto-polling for active background synthesis jobs
+    const isAnyJobProcessing =
+      dynamicMaterials.some(d => d.status === 'processing' || d.status === 'pending') ||
+      (dynamicDetail && (dynamicDetail.status === 'processing' || dynamicDetail.status === 'pending')) ||
+      chapterMaterials.some(c => c.status === 'processing' || c.status === 'pending') ||
+      Boolean(retryingChapterKey);
+
+    useEffect(() => {
+      if (viewMode !== 'dynamic' || !isAnyJobProcessing || !apiClient) return;
+
+      const timer = setInterval(async () => {
+        try {
+          // Poll dynamic materials list
+          const listRes = await apiClient.listDynamicMaterials();
+          const list = Array.isArray(listRes) ? listRes : (listRes && listRes.data ? listRes.data : []);
+          if (list.length > 0) {
+            setDynamicMaterials(list);
+          }
+
+          // Poll chapter materials
+          const chRes = await apiClient.listPersonalMaterials();
+          const chList = Array.isArray(chRes) ? chRes : (chRes && chRes.data ? chRes.data : []);
+          setChapterMaterials(chList);
+
+          // If a specific chapter was being retried, check if it finished
+          if (retryingChapterKey) {
+            const currentCh = chList.find(c => c.chapterKey === retryingChapterKey);
+            if (currentCh && currentCh.status !== 'processing' && currentCh.status !== 'pending') {
+              setRetryingChapterKey(null);
+            }
+          }
+
+          // Poll dynamic detail if viewing detail
+          if (selectedDynamicSubject) {
+            const refreshedDetail = await apiClient.getDynamicMaterial(selectedDynamicSubject);
+            setDynamicDetail(refreshedDetail);
+            if (refreshedDetail.status !== 'processing' && refreshedDetail.status !== 'pending') {
+              if (refreshedDetail.status === 'updated') {
+                setRetryMessage('已完成错题要点更新！');
+                setTimeout(() => setRetryMessage(null), 3500);
+              } else if (refreshedDetail.status === 'failed') {
+                setRetryMessage(null);
+              }
+            }
+          }
+        } catch (pollErr) {
+          console.warn('[PersonalMaterialsView] Polling error:', pollErr);
+        }
+      }, 2000);
+
+      return () => clearInterval(timer);
+    }, [viewMode, isAnyJobProcessing, selectedDynamicSubject, retryingChapterKey, apiClient]);
+
     // Handle retry dynamic material
     const handleDynamicRetry = async (subject) => {
       if (!apiClient) return;
       try {
-        setRetryMessage('正在提交后台重试任务...');
+        setRetryMessage('正在提交分批更新任务...');
+        setDynamicMaterials(prev => prev.map(item => item.subject === subject ? { ...item, status: 'processing' } : item));
+        if (dynamicDetail && dynamicDetail.subject === subject) {
+          setDynamicDetail(prev => ({ ...prev, status: 'processing', lastError: null }));
+        }
         await apiClient.retryDynamicMaterial(subject);
-        setRetryMessage('已触发重试，后台正在处理中');
+        setRetryMessage('已触发分批更新，后台正在逐章提炼考点中...');
         loadDynamicMaterials();
-        setTimeout(async () => {
-          try {
-            const refreshed = await apiClient.getDynamicMaterial(subject);
-            setDynamicDetail(refreshed);
-          } catch {}
-        }, 1500);
+        loadChapterMaterials();
       } catch (e) {
-        setRetryMessage(`重试失败：${e.message}`);
+        setRetryMessage(`更新失败：${e.message}`);
+      }
+    };
+
+    // Handle single chapter retry
+    const handleChapterRetry = async (chapterKey) => {
+      if (!apiClient || !chapterKey) return;
+      try {
+        setRetryingChapterKey(chapterKey);
+        setRetryMessage(`正在分批更新章节【${chapterKey}】...`);
+        setChapterMaterials(prev => prev.map(ch => ch.chapterKey === chapterKey ? { ...ch, status: 'processing', lastError: null } : ch));
+        await apiClient.retryPersonalMaterial(chapterKey);
+        setRetryMessage(`已触发本章更新，后台正在提炼考点...`);
+        loadChapterMaterials();
+      } catch (e) {
+        setRetryMessage(`章节更新失败：${e.message}`);
+        setRetryingChapterKey(null);
       }
     };
 
@@ -311,13 +427,28 @@
 
         retryMessage && div({ className: 'alert-box info' }, p(null, retryMessage)),
 
+        (item.status === 'processing' || item.status === 'pending') && div({ className: 'alert-box info' },
+          p({ className: 'alert-title' }, '⏳ 大模型正在分批提炼考点中...'),
+          p({ className: 'alert-desc' }, '系统采用小批次防截断提炼，正逐章处理错题。页面将自动实时更新，无需手动刷新。')
+        ),
+
         isFailed && div({ className: 'alert-box warning' },
-          p({ className: 'alert-title' }, '⚠️ 大模型维护遇到网络或配额异常，已保留上一版本要点。'),
-          p({ className: 'alert-desc' }, item.lastError ? `错误原因：${item.lastError}` : '建议点击右侧按钮重新触发'),
-          button({
-            className: 'btn-retry-action',
-            onClick: () => handleDynamicRetry(item.subject)
-          }, '🔄 重新触发生成')
+          p({ className: 'alert-title' }, '⚠️ 大模型生成遇到单次长度上限或网络配额异常，已安全保留上一版本要点。'),
+          p({ className: 'alert-desc' }, item.lastError ? `错误原因：${item.lastError}` : '建议点击下方按钮分批重试'),
+          div({ style: { display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' } },
+            button({
+              className: 'btn-retry-action',
+              onClick: () => handleDynamicRetry(item.subject)
+            }, '🔄 分批全部重试'),
+            button({
+              type: 'button',
+              className: 'btn-secondary-action',
+              onClick: () => {
+                setShowChapterSection(true);
+                loadChapterMaterials();
+              }
+            }, '📑 展开按章节单章更新/重试')
+          )
         ),
 
         isDynamicLoading ? div({ className: 'loading-box' }, p(null, '正在加载题型复习要点...')) :
@@ -355,9 +486,17 @@
                   title: '向 AI 助教提问'
                 }, '🤖 考点要点答疑'),
                 button({
+                  type: 'button',
+                  className: 'btn-secondary-action btn-toggle-chapters',
+                  onClick: () => {
+                    setShowChapterSection(!showChapterSection);
+                    if (!showChapterSection) loadChapterMaterials();
+                  }
+                }, showChapterSection ? '▴ 收起各章节' : '📑 按章节分批状态与单章更新'),
+                button({
                   className: 'btn-secondary-action btn-retry-sync',
                   onClick: () => handleDynamicRetry(item.subject)
-                }, '🔄 重新触发生成')
+                }, '🔄 分批全部更新')
               )
             ),
 
@@ -378,6 +517,66 @@
                 span({ className: 'stat-num' }, String(item.summary?.chaptersWithDataCount || 0)),
                 span({ className: 'stat-label' }, '涉及章节')
               )
+            ),
+
+            showChapterSection && div({ className: 'chapter-batch-manager-card', style: { marginTop: '1rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px solid var(--border)' } },
+              div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' } },
+                h4({ style: { margin: 0, fontSize: '0.95rem', fontWeight: 600 } }, `分章节考点提炼状态（${item.subject === 'case' ? '案例题 8 专题' : '选择题 13 章节'}）`),
+                span({ style: { fontSize: '0.8rem', color: 'var(--text-muted)' } }, '系统采用小批次防截断提炼，支持单章独立更新与重试')
+              ),
+              div({ className: 'chapter-batch-list', style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.5rem' } },
+                (chapterMaterials.length > 0 ? chapterMaterials : staticChapters)
+                  .filter(ch => (ch.subject || (ch.id && ch.id.includes('案例') ? 'case' : 'objective')) === item.subject)
+                  .map(ch => {
+                    const key = ch.chapterKey || ch.id;
+                    const name = ch.chapterName || ch.title || key;
+                    const chDetail = chapterMaterials.find(c => c.chapterKey === key) || ch;
+                    const status = chDetail.status || 'empty';
+                    const isChRetrying = retryingChapterKey === key;
+                    const isChFailed = status === 'failed';
+                    const isChProcessing = status === 'processing' || status === 'pending';
+                    const pointsCount = chDetail.summary?.weakPointsCount || 0;
+
+                    let statusText = '尚无错题';
+                    let statusColor = '#94a3b8';
+                    if (status === 'updated') { statusText = `已更新 (${pointsCount}要点)`; statusColor = '#16a34a'; }
+                    else if (isChProcessing) { statusText = '分批提炼中...'; statusColor = '#2563eb'; }
+                    else if (isChFailed) { statusText = '生成受阻(已保底)'; statusColor = '#dc2626'; }
+
+                    return div({
+                      key,
+                      style: {
+                        padding: '0.6rem 0.75rem',
+                        backgroundColor: '#fff',
+                        borderRadius: '0.35rem',
+                        border: isChFailed ? '1px solid #fca5a5' : '1px solid #e2e8f0',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }
+                    },
+                      div({ style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' } },
+                        div({ style: { fontSize: '0.85rem', fontWeight: 500 } }, name),
+                        div({ style: { fontSize: '0.75rem', color: statusColor } }, statusText)
+                      ),
+                      button({
+                        type: 'button',
+                        disabled: isChRetrying,
+                        style: {
+                          fontSize: '0.75rem',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '0.25rem',
+                          border: '1px solid #cbd5e1',
+                          backgroundColor: isChFailed ? '#fee2e2' : '#f1f5f9',
+                          color: isChFailed ? '#991b1b' : '#334155',
+                          cursor: isChRetrying ? 'not-allowed' : 'pointer',
+                          whiteSpace: 'nowrap'
+                        },
+                        onClick: () => handleChapterRetry(key)
+                      }, isChRetrying ? '提炼中...' : (isChFailed ? '重试本章' : '更新本章'))
+                    );
+                  })
+              )
             )
           ),
 
@@ -397,7 +596,7 @@
           span({ className: 'view-subtitle' },
             viewMode === 'static'
               ? '包含13个完整选择题章节与8个案例专题原文讲义，未经大模型处理，随时自由研读。'
-              : '按选择题与案例题两大题型汇总真实错题复习要点，去重提炼核心考点与解题自查动作。'
+              : '从实际失分定位待补知识，记住判定规则，用防错动作和迁移自测巩固同类题。'
           )
         ),
         div({ className: 'view-actions' },

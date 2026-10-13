@@ -32,7 +32,7 @@
     const [collapsed, setCollapsed] = React.useState(isMobileInitial);
     const [showConfirmModal, setShowConfirmModal] = React.useState(false);
 
-    const isPracticeMode = practiceMode === 'practice';
+    const isPracticeMode = practiceMode === 'practice' || practiceMode === 'memorize';
     const totalCount = questions.length;
     const isCase6Exam = totalCount === 6 && questions.every(q => q.subject === 'case');
 

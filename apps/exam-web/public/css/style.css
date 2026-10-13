@@ -634,6 +634,7 @@ body {
 .option-item {
   display: flex;
   align-items: flex-start;
+  justify-content: flex-start;
   gap: 1rem;
   background-color: #fff;
   border: 1px solid var(--border);
@@ -4588,6 +4589,7 @@ body {
     padding: 0.75rem 0.85rem;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 0.75rem;
     word-break: break-word;
     overflow-wrap: break-word;
@@ -6296,3 +6298,12 @@ button:disabled {
 }
 
 
+/* Learning cards keep the gap, rule and next action visually distinct. */
+.review-memory-card { margin: 1rem 0; padding: 1rem 1.2rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; background: #fff; }
+.review-memory-card h4 { margin: 0 0 0.7rem; color: #1e3a8a; font-size: 1rem; }
+.review-card-field { margin: 0.4rem 0; line-height: 1.7; overflow-wrap: anywhere; }
+.review-card-label { font-weight: 600; }
+.review-card-field-0 { color: #9a3412; }
+.review-card-field-3 { padding-top: 0.5rem; border-top: 1px dashed #cbd5e1; color: #475569; }
+.review-card-answer summary { cursor: pointer; color: #1d4ed8; font-size: 0.9rem; }
+.review-card-answer p { margin: 0.4rem 0; }

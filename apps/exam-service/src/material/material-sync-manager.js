@@ -9,6 +9,18 @@ const {
 } = require('../../../exam-contracts/dist/index.js');
 const matRepo = require('../db/personal-materials-repository');
 const { PersonalMaterialsSynthesizer } = require('../../../exam-llm');
+const { isLossEvidence } = require('../../../exam-llm/src/materials/review-cards');
+
+function resolveReviewChapter(question) {
+  // Legacy bank chapter names otherwise fall through to computer systems.
+  // Keep the correction within the personal-material consumer.
+  const chapter = question?.chapter || '';
+  if (question?.subject !== 'case' && !question?.sharedStem && !question?.shared_stem &&
+      /项目管理|系统开发基础|软件测试|软件维护/.test(chapter)) {
+    return STANDARD_CHAPTERS.find(ch => ch.key === 'obj_05_software_eng');
+  }
+  return resolveStandardChapter(question);
+}
 
 function getMaterialsBaseDir() {
   if (process.env.EXAM_MATERIALS_DIR && fs.existsSync(process.env.EXAM_MATERIALS_DIR)) {
@@ -239,21 +251,7 @@ function extractConcisePointsFromMarkdown(markdownContent, chapterName = '') {
  * Determines whether an answered question is a real wrong question or score-loss item (AC-1).
  */
 function isWrongOrLostPointQuestion(q) {
-  if (!q) return false;
-  if (q.status === 'unanswered' || q.isCorrect === null) return false;
-  const ua = q.userAnswer;
-  if (ua === null || ua === undefined) return false;
-  if (typeof ua === 'string' && ua.trim().length === 0) return false;
-  if (typeof ua === 'object' && Object.keys(ua).length === 0) return false;
-
-  // Objective wrong question
-  if (q.isCorrect === false) return true;
-
-  // Case question score loss (partial or zero credit)
-  if (typeof q.score === 'number' && typeof q.maxScore === 'number' && q.score < q.maxScore) return true;
-  if (typeof q.points === 'number' && typeof q.maxPoints === 'number' && q.points < q.maxPoints) return true;
-
-  return false;
+  return isLossEvidence(q);
 }
 
 /**
@@ -290,16 +288,45 @@ class MaterialSyncManager {
    * @param {import('node:sqlite').DatabaseSync} options.db
    * @param {PersonalMaterialsSynthesizer} [options.synthesizer]
    * @param {boolean} [options.autoStart=true]
+   * @param {object} [options.llmConfig]
    */
-  constructor({ db, synthesizer, autoStart = true }) {
+  constructor({ db, synthesizer, autoStart = true, llmConfig = null }) {
     this.db = db;
     this.synthesizer = synthesizer || new PersonalMaterialsSynthesizer();
     this.activeChapters = new Set(); // Concurrency lock per chapterKey
     this.isProcessing = false;
     this.isShuttingDown = false;
 
+    this._ensureLlmConfig(llmConfig);
+
     if (autoStart) {
       this.initialize();
+    }
+  }
+
+  /**
+   * Ensures synthesizer's gatewayAdapter is configured with the latest LLM settings.
+   * Dynamically loads from DB if not explicitly supplied.
+   * @param {object} [explicitConfig]
+   */
+  _ensureLlmConfig(explicitConfig) {
+    let cfg = explicitConfig;
+    if (!cfg && this.db) {
+      try {
+        const settingsRepo = require('../db/settings-repository');
+        cfg = settingsRepo.getSetting(this.db, 'llm_config');
+      } catch {}
+    }
+    if (cfg && typeof cfg === 'object' && this.synthesizer?.gatewayAdapter?.updateConfig) {
+      this.synthesizer.gatewayAdapter.updateConfig({
+        endpoint: cfg.endpoint,
+        apiKey: cfg.apiKey,
+        model: cfg.model,
+        timeoutMs: cfg.timeoutMs
+      });
+      if (typeof cfg.timeoutMs === 'number' && cfg.timeoutMs > 0) {
+        this.synthesizer.timeoutMs = cfg.timeoutMs;
+      }
     }
   }
 
@@ -353,7 +380,7 @@ class MaterialSyncManager {
     // Group only wrong questions by chapter
     const chapterMap = new Map();
     for (const q of wrongQuestions) {
-      const stdChapter = resolveStandardChapter(q.question);
+      const stdChapter = resolveReviewChapter(q.question);
       if (!chapterMap.has(stdChapter.key)) {
         chapterMap.set(stdChapter.key, {
           chapter: stdChapter,
@@ -364,13 +391,16 @@ class MaterialSyncManager {
       chapterMap.get(stdChapter.key).evidences.push({
         questionId: q.question.id,
         stem: q.question.questionStem || q.question.sharedStem || '',
+        options: q.question.options || [],
         userAnswer: q.userAnswer,
         standardAnswer: q.effectiveAnswer || (q.solutionCodeBlocks ? '参考解答见解析' : '无'),
         analysis: q.analysis || '',
         isCorrect: q.isCorrect,
         points: q.score,
         maxPoints: q.maxScore,
-        feedback: q.caseReview ? q.caseReview.feedback : ''
+        feedback: q.caseReview ? q.caseReview.feedback : '',
+        breakdown: q.caseReview ? q.caseReview.breakdown : [],
+        status: q.status
       });
     }
 
@@ -592,6 +622,8 @@ class MaterialSyncManager {
       return;
     }
 
+    this._ensureLlmConfig();
+
     const startedAt = new Date().toISOString();
     matRepo.updateJobStatus(this.db, job.id, {
       status: 'processing',
@@ -629,23 +661,17 @@ class MaterialSyncManager {
     const existingRetained = Array.isArray(existingMetadata?.retainedEvidences) ? existingMetadata.retainedEvidences : [];
     const evidenceMap = new Map();
 
-    let unmasteredIds = null;
+    const masteredIds = new Set();
     try {
       const allWrongRows = this.db.prepare('SELECT question_id, mastered FROM wrong_questions').all();
-      if (allWrongRows.length > 0) {
-        unmasteredIds = new Set(
-          allWrongRows
-            .filter(r => Number(r.mastered) === 0)
-            .map(r => r.question_id)
-        );
-      }
+      allWrongRows.filter(r => Number(r.mastered) === 1).forEach(r => masteredIds.add(r.question_id));
     } catch {}
 
     for (const ev of existingRetained) {
-      if (ev && ev.questionId) {
-        if (unmasteredIds && !unmasteredIds.has(ev.questionId)) {
-          continue; // Question mastered or removed from wrong notebook
-        }
+      if (ev && ev.questionId && isWrongOrLostPointQuestion(ev)) {
+        // Partial-score case items can have isCorrect=true and never enter the
+        // wrong notebook. Absence from that table does not establish mastery.
+        if (masteredIds.has(ev.questionId)) continue;
         evidenceMap.set(ev.questionId, ev);
       }
     }
@@ -665,10 +691,25 @@ class MaterialSyncManager {
     const mergedEvidences = Array.from(evidenceMap.values());
 
     if (mergedEvidences.length === 0) {
-      matRepo.updateJobStatus(this.db, job.id, {
-        status: 'done',
-        completedAt: new Date().toISOString()
-      });
+      // Empty evidence must clear obsolete cards and finish the chapter state;
+      // the previous implementation left it stuck as processing with old text.
+      this.db.exec('BEGIN IMMEDIATE');
+      try {
+        if (existingMat?.markdown_content) {
+          matRepo.saveMaterialHistory(this.db, { chapterKey, version: existingMat.version,
+            markdownContent: existingMat.markdown_content, metadataJson: existingMat.metadata_json, jobId: job.id });
+        }
+        matRepo.saveChapterMaterial(this.db, { chapterKey, chapterName: stdChapter.name, subject: stdChapter.subject,
+          status: 'empty', version: (existingMat?.version || 0) + 1,
+          markdownContent: null, metadataJson: JSON.stringify({ retainedEvidences: [], reviewCards: [],
+            formatVersion: 'review-cards-v1', summary: { weakPointsCount: 0, misconceptionsCount: 0, tipsCount: 0, checklistsCount: 0 } }),
+          lastJobId: job.id });
+        matRepo.updateJobStatus(this.db, job.id, {
+          status: 'done',
+          completedAt: new Date().toISOString()
+        });
+        this.db.exec('COMMIT');
+      } catch (error) { this.db.exec('ROLLBACK'); throw error; }
       return;
     }
 
@@ -1067,7 +1108,7 @@ class MaterialSyncManager {
       const headerTitle = safeSubject === 'objective'
         ? '# 软件设计师选择题错题复习要点'
         : '# 软件设计师案例题错题复习要点';
-      const headerIntro = '> 本要点严格基于真实做题实测错题与失分记录提炼，去重汇总核心考点与解题自查动作。';
+      const headerIntro = '> 先看“待补”定位薄弱点，再记规则、执行防错动作；自测先独立思考，再核对答案，能解释理由后再练同类题。';
 
       selectedPoints = candidatePoints;
 

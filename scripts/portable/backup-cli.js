@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
+const crypto = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 
 function formatTimestamp(d = new Date()) {
@@ -16,15 +17,27 @@ function formatTimestamp(d = new Date()) {
   return `${yyyy}${MM}${dd}_${hh}${mm}${ss}`;
 }
 
-async function tryHttpExport(backupFile, port = 3124) {
+function computeDbIdentity(dbPath) {
+  return crypto.createHash('sha256').update(path.resolve(dbPath)).digest('hex');
+}
+
+async function tryHttpExport(backupFile, port = 3124, expectedDbPath = null) {
+  const expectedDbId = expectedDbPath ? computeDbIdentity(expectedDbPath) : null;
   return new Promise((resolve) => {
     const req = http.get({
       host: '127.0.0.1',
       port,
       path: '/api/v1/system/db-export',
+      headers: {
+        Host: `127.0.0.1:${port}`
+      },
       timeout: 1500
     }, (res) => {
       if (res.statusCode !== 200) {
+        res.resume();
+        return resolve(false);
+      }
+      if (expectedDbId && res.headers['x-ruankao-db-id'] !== expectedDbId) {
         res.resume();
         return resolve(false);
       }
@@ -47,17 +60,37 @@ async function tryHttpExport(backupFile, port = 3124) {
   });
 }
 
-function verifyBackupIntegrity(backupFile) {
+function verifyBackupIntegrity(backupFile, sourceDbPath = null) {
   let db = null;
+  let srcDb = null;
   try {
     db = new DatabaseSync(backupFile);
-    db.exec('PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;');
+    db.exec('PRAGMA busy_timeout = 3000; PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;');
     const check = db.prepare('PRAGMA integrity_check').get();
     if (!check || check.integrity_check !== 'ok') {
       throw new Error(`Integrity check failed: ${JSON.stringify(check)}`);
     }
+
+    if (sourceDbPath && fs.existsSync(sourceDbPath)) {
+      srcDb = new DatabaseSync(sourceDbPath, { readOnly: true });
+      srcDb.exec('PRAGMA busy_timeout = 3000;');
+      const tables = srcDb.prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+      ).all();
+      for (const { name } of tables) {
+        if (!/^[A-Za-z0-9_]+$/.test(name)) continue;
+        const srcCount = srcDb.prepare(`SELECT COUNT(*) AS count FROM "${name}"`).get().count;
+        const bakCount = db.prepare(`SELECT COUNT(*) AS count FROM "${name}"`).get().count;
+        if (bakCount !== srcCount) {
+          throw new Error(`Table ${name} row count mismatch: source=${srcCount}, backup=${bakCount}`);
+        }
+      }
+    }
     return true;
   } finally {
+    if (srcDb) {
+      try { srcDb.close(); } catch {}
+    }
     if (db) {
       try { db.close(); } catch {}
     }
@@ -68,59 +101,73 @@ function verifyBackupIntegrity(backupFile) {
   }
 }
 
-async function performBackup(appDir) {
+async function performBackup(appDir, options = {}) {
   const dataDir = path.join(appDir, 'data');
   const dbPath = path.join(dataDir, 'app.db');
   const backupsDir = path.join(dataDir, 'backups');
+  const busyTimeoutMs = Number.isFinite(options.busyTimeoutMs) ? options.busyTimeoutMs : 3000;
 
   if (!fs.existsSync(dbPath)) {
     console.log('[提示] 尚未生成做题记录 (data/app.db 暂不存在)。');
     return true;
   }
 
-  if (!fs.existsSync(backupsDir)) {
-    fs.mkdirSync(backupsDir, { recursive: true });
+  try {
+    if (!fs.existsSync(backupsDir)) {
+      fs.mkdirSync(backupsDir, { recursive: true });
+    }
+  } catch (dirErr) {
+    console.error('[备份错误] 创建备份目录失败:', dirErr.message);
+    return false;
   }
 
   const timestamp = formatTimestamp();
-  const backupFile = path.join(backupsDir, `app_backup_${timestamp}.db`);
+  const suffix = String(process.pid) + '_' + Math.random().toString(36).slice(2, 6);
+  const backupFile = options.targetFile || path.join(backupsDir, `app_backup_${timestamp}.db`);
+  const tempBackupFile = `${backupFile}.${suffix}.tmp`;
 
   console.log('[Ruankao Backup] 正在执行做题记录一致性备份...');
 
-  // 1. If unified-server is currently running, prefer hot export via local HTTP endpoint
-  // This guarantees active WAL entries are fully flushed with 0 locking contention
-  let success = await tryHttpExport(backupFile);
+  // 1. Prefer verified same-instance HTTP export when the local server is running
+  let success = await tryHttpExport(tempBackupFile, options.port, dbPath);
 
-  // 2. If server is offline or HTTP is unavailable, perform direct SQLite WAL checkpoint + copy
+  // 2. Otherwise use SQLite VACUUM INTO to create a consistent snapshot including all committed WAL rows
   if (!success) {
     let localDb = null;
     try {
+      if (fs.existsSync(tempBackupFile)) {
+        fs.unlinkSync(tempBackupFile);
+      }
       localDb = new DatabaseSync(dbPath);
-      // Flush WAL to the main database file
-      localDb.exec('PRAGMA wal_checkpoint(TRUNCATE);');
-    } catch (e) {
-      console.warn('[备份提示] 独占锁或断开重连:', e.message);
+      localDb.exec(`PRAGMA busy_timeout = ${Math.max(0, Math.floor(busyTimeoutMs))};`);
+      const escapedTarget = tempBackupFile.replace(/'/g, "''");
+      localDb.exec(`VACUUM INTO '${escapedTarget}';`);
+      success = true;
+    } catch (snapshotErr) {
+      console.error('[备份错误] 创建 SQLite 一致性快照失败:', snapshotErr.message);
+      try {
+        if (fs.existsSync(tempBackupFile)) fs.unlinkSync(tempBackupFile);
+      } catch {}
+      return false;
     } finally {
       if (localDb) {
         try { localDb.close(); } catch {}
       }
     }
-
-    try {
-      fs.copyFileSync(dbPath, backupFile);
-      success = true;
-    } catch (copyErr) {
-      console.error('[备份错误] 复制数据库文件失败:', copyErr.message);
-      return false;
-    }
   }
 
-  // 3. Verify backup file integrity
+  // 3. Verify backup integrity and row consistency before promoting temp file
   try {
-    verifyBackupIntegrity(backupFile);
+    verifyBackupIntegrity(tempBackupFile, dbPath);
+    if (fs.existsSync(backupFile)) {
+      fs.unlinkSync(backupFile);
+    }
+    fs.renameSync(tempBackupFile, backupFile);
   } catch (verifyErr) {
     console.error('[备份错误] 备份产物完整性校验失败:', verifyErr.message);
-    try { fs.unlinkSync(backupFile); } catch {}
+    try {
+      if (fs.existsSync(tempBackupFile)) fs.unlinkSync(tempBackupFile);
+    } catch {}
     return false;
   }
 
@@ -131,8 +178,13 @@ async function performBackup(appDir) {
 }
 
 if (require.main === module) {
-  const appDir = path.resolve(__dirname, '..');
-  performBackup(appDir)
+  const appDir = process.env.RUANKAO_APP_DIR
+    ? path.resolve(process.env.RUANKAO_APP_DIR)
+    : path.resolve(__dirname, '..');
+  const targetFile = process.env.RUANKAO_BACKUP_TARGET
+    ? path.resolve(process.env.RUANKAO_BACKUP_TARGET)
+    : undefined;
+  performBackup(appDir, { targetFile })
     .then((ok) => {
       if (!ok) {
         process.exit(1);
@@ -146,5 +198,6 @@ if (require.main === module) {
 
 module.exports = {
   performBackup,
-  verifyBackupIntegrity
+  verifyBackupIntegrity,
+  computeDbIdentity
 };

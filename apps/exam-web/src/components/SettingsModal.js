@@ -17,6 +17,7 @@
   const { useState, useEffect } = React;
 
   const PRESET_ENDPOINTS = [
+    { label: '本地 Gemini (127.0.0.1:8045)', url: 'http://127.0.0.1:8045/v1' },
     { label: 'OpenAI 官方', url: 'https://api.openai.com/v1' },
     { label: 'DeepSeek 官方', url: 'https://api.deepseek.com/v1' },
     { label: '硅基流动', url: 'https://api.siliconflow.cn/v1' }
@@ -366,7 +367,7 @@
                 })
               ),
               div({ className: 'col-half form-hint-box' },
-                p({ className: 'form-hint' }, '建议：本地网关 15~30s；公网大模型 30~60s。若超时会自动优雅降级并保护本地作答。')
+                p({ className: 'form-hint' }, '建议：普通问答 30~60s；思考模型或复习资料生成 90~120s。超时会保留已有完整资料并保护本地作答。')
               )
             ),
 

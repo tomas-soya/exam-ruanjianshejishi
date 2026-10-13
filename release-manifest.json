@@ -26,7 +26,7 @@
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "0e6639d1908eba8224e1d44f0c51d566b73d679800f985b484ca2c65e1744b29"
+      "sha256": "3d10556d5a797c6a2491668e38d54dc514c01f15c0353e16885e311e9eb7218b"
     },
     {
       "path": ".gitignore",
@@ -50,7 +50,7 @@
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "187e200979348aa7caa8c8d0bf8bb601b2ad7c61b763a6e83fb2639246d67d93"
+      "sha256": "a525140d864bd27f1734257ec1878493d271cb58962c5b20abdb25ab94cf08f4"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -70,7 +70,7 @@
     },
     {
       "path": "apps/exam-contracts/package.json",
-      "sha256": "224b735633d87fb0c901cffa0c1a5eb219f2bf0386558d663884d535e95b1b1f"
+      "sha256": "a70966a6347f52d9a92474d73fa503f029c044fe8a3d65679488895c9394c98c"
     },
     {
       "path": "apps/exam-contracts/src/index.ts",
@@ -94,7 +94,7 @@
     },
     {
       "path": "apps/exam-llm/package.json",
-      "sha256": "8906c388d298ec95daedf8660b105caa6122629f01c33f68581da76130752b44"
+      "sha256": "98f0d662eeba59a692e07f6233480ddf81cb3bc066f19363dd0c2a96675883a5"
     },
     {
       "path": "apps/exam-llm/src/adapter/env-loader.js",
@@ -102,7 +102,7 @@
     },
     {
       "path": "apps/exam-llm/src/adapter/gateway.js",
-      "sha256": "fb4dbd5db8924534ffa75250cea46fb42a0788f8170ed497f3b8c6e08275a862"
+      "sha256": "73570c1da4a15e3b369f5fd164b9852a1d6dd2154c5d7de46d13d2612eb7dca2"
     },
     {
       "path": "apps/exam-llm/src/chat/chat-service.js",
@@ -126,15 +126,19 @@
     },
     {
       "path": "apps/exam-llm/src/materials/materials-prompt-builder.js",
-      "sha256": "ecdf29f9ccfa5fa0d2e123b72c8a75d17d63a6be96c2e8cd15c257440f713b88"
+      "sha256": "eba2f4dbce8472d1c7cb9f7c5431e40835ab5f6d8094caaa2d85fe20e1291284"
     },
     {
       "path": "apps/exam-llm/src/materials/materials-sanitizer.js",
-      "sha256": "4b4829efda68e56ae4cedfd2f9c542f18c67951ef101adff054d99ecd9591036"
+      "sha256": "dff7f046f5c69190c3ab2e8a153f1fac8f8aabce9ee6047a4a29866dd3e03112"
     },
     {
       "path": "apps/exam-llm/src/materials/personal-materials-synthesizer.js",
-      "sha256": "59eabc61d841f9ded74c847a17ba667b9c1957fc63c53c0db97c069d252d7f64"
+      "sha256": "0aea8bcbda21e39796c9983cde279b3ae44add173a97da53bd5c8db5fd36d8de"
+    },
+    {
+      "path": "apps/exam-llm/src/materials/review-cards.js",
+      "sha256": "4d305cacb4f389964e3917d9e530e07f4455755b1a6b713d3ab400bf533d8a29"
     },
     {
       "path": "apps/exam-llm/src/priority/algorithm.js",
@@ -158,7 +162,7 @@
     },
     {
       "path": "apps/exam-service/package.json",
-      "sha256": "bbf64f37b67fb1f0f7ea9fe2ee7da0ba029a633fea7fd8b0e7f04a8769c0a119"
+      "sha256": "d65844a98cb508f39ab492c110ae0a7b2c4ec78b10ee2914bf084ecbfb582da9"
     },
     {
       "path": "apps/exam-service/src/bank/identifier-map.js",
@@ -238,7 +242,7 @@
     },
     {
       "path": "apps/exam-service/src/db/settings-repository.js",
-      "sha256": "ad8e11b34bc2423f816a69b74b53f90ec8c48aaf672fc76b5666e62823211654"
+      "sha256": "50b33dd0b621d2a9579a9b3415a8559e638734ee621bedb8fc6e15c8711849ac"
     },
     {
       "path": "apps/exam-service/src/db/wrong-questions-repository.js",
@@ -254,7 +258,7 @@
     },
     {
       "path": "apps/exam-service/src/material/material-sync-manager.js",
-      "sha256": "aa85d158e9c9b618f024d95f065883ee12d66a664386ba3770b53287499c4132"
+      "sha256": "fc6b0671c7e14a3c6abfaa4c2017d779a218c4870f23afa8c20b6aa2a230c662"
     },
     {
       "path": "apps/exam-service/src/scoring/case-evaluator.js",
@@ -262,23 +266,27 @@
     },
     {
       "path": "apps/exam-service/src/server.js",
-      "sha256": "a476d5d81e0b63bcc0d65992fff08797f20aab8d6d5912788b1ee3a14e1b3912"
+      "sha256": "5f326fd92d2a33b6468456e24d579a942994356325493573f8ed53077b44b486"
     },
     {
       "path": "apps/exam-service/src/service/exam-service.js",
-      "sha256": "82847c78ac01b0d79f911da09ca62452c2398315e5380c3bd06cd99ab9ba5160"
+      "sha256": "a72f784409d92c7d2e3692bd72ca552c0dbd48c6dbd89c1cd1f9c205af95fbc5"
     },
     {
       "path": "apps/exam-service/src/unified-server.js",
-      "sha256": "78c36774f4b95974202c29a672fb8ec3d134305aae9d6dc4a7d9e68844841feb"
+      "sha256": "5087525df4b7f955e648836a5c6748059d985267189af9829520e5215583cac9"
+    },
+    {
+      "path": "apps/exam-service/src/utils/crypto-vault.js",
+      "sha256": "3b9615a0361b6004d1074cee81226af189976752f5f8ce5782203af5b838e190"
     },
     {
       "path": "apps/exam-web/package.json",
-      "sha256": "482ac6d29a06a2e4cb6363d299e602825677e4107adae177af504bf0b8851c95"
+      "sha256": "cfbeee6caaaa6f66a97efe961ba3dd5e93b9ae0900ce0d58a2b2518b30ea6e07"
     },
     {
       "path": "apps/exam-web/public/css/style.css",
-      "sha256": "6955a7e4cd59e5729485465cc13c08dd8e7fbccd3756878ceca2afb8e484598b"
+      "sha256": "19a2115ba2a30d1a5aec98952f8a66c6e89f3fdf6ffef08161eac1dcd2855e09"
     },
     {
       "path": "apps/exam-web/public/index.html",
@@ -310,7 +318,7 @@
     },
     {
       "path": "apps/exam-web/src/components/AnswerSheet.js",
-      "sha256": "cd04decd245f25f078c41ea1a67ace9bd0509763ff76530013b66be8b77b5ac3"
+      "sha256": "daad31942ef7cc3af63f69c79711137aa1812fafd5c20eea3d8dcdb98f7e4e9f"
     },
     {
       "path": "apps/exam-web/src/components/CaseQuestion.js",
@@ -358,7 +366,7 @@
     },
     {
       "path": "apps/exam-web/src/components/PersonalMaterialsView.js",
-      "sha256": "71659b635243896f7bcd530f2db5216ad95fed81f320bf7f423a8d07f2dbc73e"
+      "sha256": "8e83d9ed163811be4f56aeda3ba59c6ee2b2e795c94252c29d13100282770064"
     },
     {
       "path": "apps/exam-web/src/components/ReportView.js",
@@ -370,7 +378,7 @@
     },
     {
       "path": "apps/exam-web/src/components/SettingsModal.js",
-      "sha256": "a8f63c95a43291eb2a19b45451909f2ea3f3d112d1bbd5a059e61ba187d27259"
+      "sha256": "048c9a0a9a4cf5f6d87c4f7ac69c048c8640ed9ab2683cca30c2d1299417cf92"
     },
     {
       "path": "apps/exam-web/src/components/WrongQuestionsView.js",
@@ -390,11 +398,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "1a2c9a6dcdd178ce29c8990fbcfa0fc169e4b29565d5ae9e2113eec18870cfb4"
+      "sha256": "1639276e4f8ad2d3629d6e9d73c7e2e1e5634d40dc4207c2d9be6b87525df5a1"
     },
     {
       "path": "scripts/build-portable.mjs",
-      "sha256": "f6d845082fa191bb3c3de6498fef7ceec8b889002ef4262615c1cf8bd9725c1e"
+      "sha256": "8b99fbcd44929774679a3f14abfab385453b99c887281febed8bf537bd8a02a7"
     },
     {
       "path": "scripts/portable/Launcher.cs",
@@ -406,15 +414,15 @@
     },
     {
       "path": "scripts/portable/SingleExePackage.cs",
-      "sha256": "2cca1a25857b49892ab0de4507a2a23d20a1fd99b989157e80eea2cdb4508fc6"
+      "sha256": "ae3ab9eca1da610b727a72bdf316e31155b16ff9aa2b531412a9865e7577ed10"
     },
     {
       "path": "scripts/portable/backup-cli.js",
-      "sha256": "a865f5f8c2ecfd821bf3d4397bdda5d1f6ea6c94fb642d2f3f55c75ac658179d"
+      "sha256": "be6cd31c7aad40b53dd6b172a25d68a5ae4b11304b175f314cfa9bb271daf4ed"
     },
     {
       "path": "scripts/portable/verify-portable.mjs",
-      "sha256": "3b1219dc325d8f19c9ec448ac1f4c693f914b6a172e30dde80218dcaaa7be361"
+      "sha256": "4794fb158089333ee1902df48483e6fcfba01755fa79cfbafc35fd83541e0b85"
     },
     {
       "path": "scripts/public-files.cjs",
@@ -430,7 +438,15 @@
     },
     {
       "path": "scripts/verify-release.cjs",
-      "sha256": "3e08b33cffc7f4cc1105d22a13cb28deab8be9bd2956968e7f1c73410ef17bd0"
+      "sha256": "b9dcb1d156993bcd81bb8b75091b8c2df02ab6f159a2e5e35e8d4b8ad95c487e"
+    },
+    {
+      "path": "test/gemini-materials-compatibility.test.cjs",
+      "sha256": "477da54caf51c687e126909dd2005be1b4eb1059636a50f4a2041843dce3f51a"
+    },
+    {
+      "path": "test/materials-polling-and-truncation.test.cjs",
+      "sha256": "b3bf65ee0c47825d0c15af7a0035781ab2fe9456be73805b111b76e1627217c2"
     },
     {
       "path": "test/open-source-privacy.test.cjs",
@@ -442,7 +458,11 @@
     },
     {
       "path": "test/release-review-fixes.test.cjs",
-      "sha256": "9770eb31127b272b65d3c13583697998f9ab6e571149d718be9408edd98d3f8d"
+      "sha256": "e7dc91f79e809543247405df17cb686c1900ce3f831760966f2145a54387ae6a"
+    },
+    {
+      "path": "test/review-cards.test.cjs",
+      "sha256": "fe1a6a5f41a59003017e7b7d62ab6209c861b196c39dd0380561b4f0211f7b65"
     },
     {
       "path": "软件设计师复习材料/案例题/00-题型索引.md",

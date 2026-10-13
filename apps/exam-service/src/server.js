@@ -4,6 +4,7 @@ const http = require('node:http');
 const url = require('node:url');
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { EXAM_OPENAPI_SPEC } = require('../../exam-contracts/dist/index.js');
 const { ExamService } = require('./service/exam-service');
 const { QuestionBankLoader } = require('./bank/question-loader');
@@ -33,23 +34,50 @@ function isLanAddress(addr) {
     (a === 192 && b === 168) || (a === 169 && b === 254);
 }
 
-function isAllowedOrigin(origin, { allowLanAccess = false } = {}) {
-  if (!origin) return true;
+function isAllowedHost(hostHeader, { allowLanAccess = false, expectedPort = null } = {}) {
+  if (hostHeader === undefined || hostHeader === null || hostHeader === '') return true;
+  if (typeof hostHeader !== 'string') return false;
   try {
-    const parsed = new URL(origin);
-    const hostname = parsed.hostname;
-    if (isLocalAddress(hostname)) return true;
-    if (allowLanAccess && isLanAddress(hostname)) return true;
-    return false;
+    const parsed = new URL(`http://${hostHeader}`);
+    if (parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) {
+      return false;
+    }
+    const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
+    const hostOk = isLocalAddress(hostname) || (allowLanAccess && isLanAddress(hostname));
+    if (!hostOk) return false;
+    if (expectedPort !== null && expectedPort !== undefined) {
+      const portStr = parsed.port || '80';
+      if (portStr !== String(expectedPort)) return false;
+    }
+    return true;
   } catch {
     return false;
   }
 }
 
-function getCorsHeaders(req, { allowLanAccess = false, isSensitive = false } = {}) {
+function isAllowedOrigin(origin, { allowLanAccess = false, expectedPort = null } = {}) {
+  if (!origin) return true;
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== 'http:') return false;
+    const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
+    const hostOk = isLocalAddress(hostname) || (allowLanAccess && isLanAddress(hostname));
+    if (!hostOk) return false;
+    if (expectedPort !== null && expectedPort !== undefined) {
+      const portStr = parsed.port || '80';
+      if (portStr !== String(expectedPort)) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getCorsHeaders(req, { allowLanAccess = false, isSensitive = false, expectedPort = null } = {}) {
   const origin = req && req.headers ? req.headers.origin : null;
   if (!origin) return {};
-  if (!isAllowedOrigin(origin, { allowLanAccess })) return {};
+  const resolvedPort = expectedPort ?? req?.socket?.localPort ?? null;
+  if (!isAllowedOrigin(origin, { allowLanAccess, expectedPort: resolvedPort })) return {};
 
   if (isSensitive) {
     return {
@@ -229,15 +257,27 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
       return;
     }
 
+    const expectedPort = req.socket?.localPort || server.address()?.port || null;
+    const hostHeader = req.headers ? req.headers.host : undefined;
+    if (hostHeader !== undefined && !isAllowedHost(hostHeader, { allowLanAccess, expectedPort })) {
+      sendError(res, 'FORBIDDEN_HOST', '禁止非法的 Host 请求头访问', 403);
+      return;
+    }
+
     const origin = req.headers ? req.headers.origin : null;
-    const isOriginAllowed = isAllowedOrigin(origin, { allowLanAccess });
+    const isOriginAllowed = isAllowedOrigin(origin, { allowLanAccess, expectedPort });
+    const referer = req.headers ? req.headers.referer : null;
+    const isRefererAllowed = !referer || isAllowedOrigin(referer, { allowLanAccess, expectedPort });
+    const secFetchSite = req.headers ? req.headers['sec-fetch-site'] : null;
+    const isSecFetchSiteAllowed = !secFetchSite || secFetchSite === 'same-origin' || secFetchSite === 'none';
+
     const parsedUrl = url.parse(req.url, true);
     const pathname = (parsedUrl.pathname || '').replace(/\/+$/, '') || '/';
     const query = parsedUrl.query || {};
     const method = (req.method || 'GET').toUpperCase();
 
     const isSensitive = isSensitiveRoute(pathname);
-    const corsHeaders = getCorsHeaders(req, { allowLanAccess, isSensitive });
+    const corsHeaders = getCorsHeaders(req, { allowLanAccess, isSensitive, expectedPort });
     res.__corsHeaders = corsHeaders;
 
     // 2. CORS Preflight
@@ -252,8 +292,8 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
       return;
     }
 
-    // 3. Block untrusted cross-origin requests on sensitive endpoints
-    if (origin && !isOriginAllowed && isSensitive) {
+    // 3. Block untrusted cross-origin requests
+    if ((origin && !isOriginAllowed) || ((isSensitive || method !== 'GET') && (!isRefererAllowed || !isSecFetchSiteAllowed))) {
       sendError(res, 'FORBIDDEN_CROSS_ORIGIN', '禁止不可信的跨站来源访问敏感接口', 403);
       return;
     }
@@ -761,11 +801,13 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
         try {
           examService.exportDatabaseToBackup(tmpFile);
           const stat = fs.statSync(tmpFile);
-          const exportCorsHeaders = getCorsHeaders(req, { allowLanAccess, isSensitive: true });
+          const dbId = crypto.createHash('sha256').update(path.resolve(examService.dbPath || ':memory:')).digest('hex');
+          const exportCorsHeaders = getCorsHeaders(req, { allowLanAccess, isSensitive: true, expectedPort });
           res.writeHead(200, {
             'Content-Type': 'application/vnd.sqlite3',
             'Content-Disposition': `attachment; filename="ruankao_app_${timestamp}.db"`,
             'Content-Length': stat.size,
+            'X-Ruankao-Db-Id': dbId,
             ...exportCorsHeaders
           });
 
@@ -925,6 +967,9 @@ function startServer({ port = 3000, host = '127.0.0.1', dbPath, exitOnShutdown =
 module.exports = {
   createApp,
   startServer,
+  isLocalAddress,
+  isLanAddress,
+  isAllowedHost,
   isAllowedOrigin,
   getCorsHeaders
 };
