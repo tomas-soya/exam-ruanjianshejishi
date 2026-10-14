@@ -130,6 +130,44 @@ function sanitizeObjectiveQuestion(raw) {
   return sanitized;
 }
 
+function resolveCaseSubquestions(raw) {
+  const explicit = raw.subquestions || raw.subQuestions;
+  if (Array.isArray(explicit) && explicit.length) return explicit;
+
+  // Only standalone headings are boundaries: references inside a question,
+  // numbered requirements and code blanks must not create extra answer fields.
+  const stem = String(raw.shared_stem || raw.sharedStem || '');
+  const headings = [];
+  let offset = 0;
+  let fence = '';
+  const digits = (value) => value.replace(/[０-９]/g, ch => String(ch.charCodeAt(0) - 0xff10));
+  for (const line of stem.split('\n')) {
+    const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
+    if (fenceMatch) {
+      if (!fence) fence = fenceMatch[1][0];
+      else if (fence === fenceMatch[1][0]) fence = '';
+    } else if (!fence) {
+      const match = line.match(/^[ \t]*(?:【问题[ \t]*([0-9０-９]+|[一二三四五六七八九十])[ \t]*】(?![ \t]*[中的])(?:[ \t]*[（(][ \t]*[0-9０-９.．]+[ \t]*分[ \t]*[）)])?|([0-9０-９]{1,2})[ \t]*[（(][ \t]*[0-9０-９.．]+[ \t]*分[ \t]*[）)])/);
+      if (match) {
+        const token = digits(match[1] || match[2]);
+        const number = /^\d+$/.test(token) ? Number(token) : '一二三四五六七八九十'.indexOf(token) + 1;
+        headings.push({ start: offset, end: offset + match[0].length, title: match[0].trim(), number });
+      }
+    }
+    offset += line.length + 1;
+  }
+  // Reject ambiguous or repeated numbering rather than splitting by guesses.
+  if (headings.length && headings.every((heading, index) => heading.number === index + 1)) {
+    return headings.map((heading, index) => ({
+      id: `sub${index + 1}`,
+      title: heading.title,
+      stem: stem.slice(heading.end, headings[index + 1]?.start ?? stem.length).trim()
+    }));
+  }
+  const count = Number.isInteger(raw.subquestions_count) && raw.subquestions_count > 0 ? raw.subquestions_count : 1;
+  return Array.from({ length: count }, (_, index) => ({ id: `sub${index + 1}`, title: `【问题 ${index + 1}】`, stem: '' }));
+}
+
 function sanitizeCaseQuestion(raw) {
   const images = Array.isArray(raw.images)
     ? raw.images
@@ -158,14 +196,14 @@ function sanitizeCaseQuestion(raw) {
     chapter: raw.chapter || '未分类',
     sourceAnchor: raw.source_anchor || raw.sourceAnchor || '',
     sharedStem: raw.shared_stem || raw.sharedStem || '',
-    subQuestions: Array.isArray(raw.subquestions) ? raw.subquestions.map((sub, index) => {
+    subQuestions: resolveCaseSubquestions(raw).map((sub, index) => {
       const subImages = Array.isArray(sub.images)
         ? sub.images
             .map(normalizeStemAsset)
             .filter((img) => img !== null)
         : [];
-      const subCodeBlocks = Array.isArray(sub.code_blocks)
-        ? sub.code_blocks
+      const subCodeBlocks = Array.isArray(sub.code_blocks || sub.codeBlocks)
+        ? (sub.code_blocks || sub.codeBlocks)
             .map(normalizeStemCodeBlock)
             .filter((cb) => cb !== null)
         : [];
@@ -176,7 +214,7 @@ function sanitizeCaseQuestion(raw) {
         ...(subImages.length ? { images: subImages } : {}),
         ...(subCodeBlocks.length ? { codeBlocks: subCodeBlocks } : {})
       };
-    }) : [],
+    }),
     codeBlocks,
     images
   };

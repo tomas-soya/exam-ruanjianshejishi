@@ -81,13 +81,17 @@ class RuleBasedFallbackEvaluator {
  * - Structured itemized scoring conforming to @ruankao/exam-contracts
  * - Anti-injection safeguards & score bounds validation
  * - Instant zero-score handling for empty submissions
- * - Automatic offline/error degradation fallback
+ * - Offline/error responses never create a score
  */
 class LlmCaseEvaluator {
   constructor(options = {}) {
     this.gateway = options.gateway || new GatewayAdapter(options.gatewayOptions || {});
-    this.fallbackEvaluator = options.fallbackEvaluator || new RuleBasedFallbackEvaluator();
-    this.timeoutMs = options.timeoutMs || 30000;
+    this.timeoutMs = options.timeoutMs || this.gateway.timeoutMs || 30000;
+  }
+
+  updateConfig(config = {}) {
+    this.gateway.updateConfig(config);
+    if (config.timeoutMs > 0) this.timeoutMs = config.timeoutMs;
   }
 
   /**
@@ -156,7 +160,7 @@ class LlmCaseEvaluator {
       rubric
     });
 
-    // 3. Call LLM Gateway with fallback on failure
+    // 3. Call LLM Gateway; failures are deferred by the exam service
     try {
       const response = await this.gateway.chatCompletion({
         messages,
@@ -165,6 +169,9 @@ class LlmCaseEvaluator {
       });
 
       const parsedJson = this.gateway.parseStructuredJson(response.content);
+      if (!parsedJson || typeof parsedJson.points !== 'number' || !Number.isFinite(parsedJson.points)) {
+        throw new Error('Invalid scoring response');
+      }
 
       // 4. Sanitize and bound the returned score
       const result = sanitizeCaseScoreResult(parsedJson, {
@@ -175,15 +182,10 @@ class LlmCaseEvaluator {
 
       return result;
     } catch (gatewayErr) {
-      // 5. Graceful offline/error degradation
-      const degradedResult = this.fallbackEvaluator.evaluate({
-        questionId,
-        userAnswer,
-        solutionAndAnalysis,
-        maxPoints
-      });
-
-      return degradedResult;
+      const err = new Error('LLM 暂不可用或评分响应无效，未进行评分。答案已保留，可稍后重新评分。');
+      err.code = 'CASE_SCORING_UNAVAILABLE';
+      err.statusCode = 503;
+      throw err;
     }
   }
 }

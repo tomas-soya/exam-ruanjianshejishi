@@ -365,14 +365,16 @@ class MaterialSyncManager {
    * @param {Array<object>} params.reportQuestions - Graded question objects
    * @returns {string[]} Array of created job IDs
    */
-  enqueueSessionSubmission({ sessionId, practiceMode = 'exam', reportQuestions = [] }) {
+  enqueueSessionSubmission({ sessionId, practiceMode = 'exam', reportQuestions = [], triggerType = 'exam_submission', processQueue = true }) {
     // AC-1: Memorize mode skips weak point creation
     if (practiceMode === 'memorize') {
       return [];
     }
 
-    // AC-1: Filter strictly to real wrong questions and score-loss case items
-    const wrongQuestions = (reportQuestions || []).filter(isWrongOrLostPointQuestion);
+    // Regrading also passes full marks so obsolete loss evidence can be removed.
+    const wrongQuestions = (reportQuestions || []).filter(q => triggerType === 'case_regrade'
+      ? !q.pendingScoring && !q.isElectiveUnselected && q.status !== 'unanswered'
+      : isWrongOrLostPointQuestion(q));
     if (wrongQuestions.length === 0) {
       return [];
     }
@@ -409,7 +411,7 @@ class MaterialSyncManager {
     for (const [chapterKey, group] of chapterMap.entries()) {
       // Skip if identical job already exists
       const existingJob = matRepo.findJobBySessionAndChapter(this.db, sessionId, chapterKey);
-      if (existingJob) {
+      if (existingJob && triggerType === 'exam_submission') {
         continue;
       }
 
@@ -425,7 +427,7 @@ class MaterialSyncManager {
         id: jobId,
         chapterKey,
         sessionId,
-        triggerType: 'exam_submission',
+        triggerType,
         payloadJson
       });
 
@@ -452,7 +454,7 @@ class MaterialSyncManager {
       createdJobIds.push(jobId);
     }
 
-    this.triggerProcessQueue();
+    if (processQueue) this.triggerProcessQueue();
     return createdJobIds;
   }
 

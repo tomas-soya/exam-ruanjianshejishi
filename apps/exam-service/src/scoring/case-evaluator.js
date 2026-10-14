@@ -29,7 +29,7 @@ class BaseCaseEvaluator {
 }
 
 /**
- * Deterministic Rule-Based Case Evaluator (Default Fallback)
+ * Deterministic Rule-Based Case Evaluator (explicit legacy use only)
  * 
  * Provides automated preliminary scoring using structural subquestion parsing
  * and reference keyword presence, strictly bounding scores and marking
@@ -161,7 +161,7 @@ class RuleBasedCaseEvaluator extends BaseCaseEvaluator {
 class PluggableCaseEvaluator extends BaseCaseEvaluator {
   constructor(customEvaluator = null) {
     super();
-    this.defaultEvaluator = new RuleBasedCaseEvaluator();
+    this.defaultEvaluator = null;
     this.customEvaluator = customEvaluator;
   }
 
@@ -170,20 +170,33 @@ class PluggableCaseEvaluator extends BaseCaseEvaluator {
   }
 
   getEvaluator() {
-    return this.customEvaluator || this.defaultEvaluator;
+    if (this.customEvaluator) return this.customEvaluator;
+    if (!this.defaultEvaluator) {
+      const { LlmCaseEvaluator } = require('../../../exam-llm');
+      this.defaultEvaluator = new LlmCaseEvaluator();
+    }
+    return this.defaultEvaluator;
+  }
+
+  updateConfig(config = {}) {
+    const evaluator = this.getEvaluator();
+    if (typeof evaluator.updateConfig === 'function') evaluator.updateConfig(config);
+    else if (evaluator.gateway?.updateConfig) {
+      evaluator.gateway.updateConfig(config);
+      if (config.timeoutMs > 0) evaluator.timeoutMs = config.timeoutMs;
+    }
   }
 
   async evaluateCaseQuestion(params) {
-    const evaluator = this.getEvaluator();
     try {
+      const evaluator = this.getEvaluator();
       const result = await evaluator.evaluateCaseQuestion(params);
       return validateCaseScoreResult(result, params.maxPoints || 15);
     } catch (err) {
-      // Graceful fallback to default rule evaluator on adapter failure
-      const fallbackResult = await this.defaultEvaluator.evaluateCaseQuestion(params);
-      fallbackResult.feedback = `[适配器降级] ${fallbackResult.feedback}`;
-      fallbackResult.needsHumanReview = true;
-      return fallbackResult;
+      const unavailable = new Error('LLM 暂不可用或评分响应无效，未进行评分。答案已保留，可稍后重新评分。');
+      unavailable.code = 'CASE_SCORING_UNAVAILABLE';
+      unavailable.statusCode = 503;
+      throw unavailable;
     }
   }
 }

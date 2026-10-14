@@ -1,6 +1,6 @@
 {
   "name": "@ruankao/exam-web",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Windows Local Exam Web Practice Interface (React + Pure Markdown + Strict Answer Isolation)",
   "main": "server.js",
   "scripts": {

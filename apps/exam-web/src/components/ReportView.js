@@ -41,12 +41,29 @@
     onToggleMastered,
     onOpenMaterial,
     onOverrideCaseScore,
+    onRegradeSession,
     onOpenChat
   }) {
     const [filterMode, setFilterMode] = useState('all'); // 'all' | 'wrong' | 'correct' | 'case' | 'unanswered'
     const [modalImage, setModalImage] = useState(null);
     const [openOverrideId, setOpenOverrideId] = useState(null);
     const [overrideForms, setOverrideForms] = useState({});
+    const [isRegrading, setIsRegrading] = useState(false);
+    const [regradeMessage, setRegradeMessage] = useState('');
+    const handleRegrade = async () => {
+      setIsRegrading(true);
+      setRegradeMessage('');
+      try {
+        await onRegradeSession();
+        setRegradeMessage('评分已更新，复习资料将在后台同步。');
+      } catch (err) {
+        setRegradeMessage(err.code === 'CASE_SCORING_UNAVAILABLE'
+          ? 'LLM 暂不可用，未进行评分。答卷已保留，请恢复连接后重试。'
+          : `重新评分失败：${err.message || '请稍后重试'}`);
+      } finally {
+        setIsRegrading(false);
+      }
+    };
 
     const handleToggleOverride = (questionId, item) => {
       if (openOverrideId === questionId) {
@@ -204,6 +221,7 @@
     } = report;
 
     const hasAssistedOrRevealed = answersRevealed || assistanceUsed || practiceMode === 'practice';
+    const hasPendingScoring = (report.pendingScoringCount || 0) > 0;
 
     const unansweredCount = rawUnanswered !== undefined ? rawUnanswered : (totalQuestions - answeredCount);
     const answeredMaxScore = rawAnsweredMaxScore || (totalQuestions > 0 ? (answeredCount) : maxScore);
@@ -232,6 +250,9 @@
     });
 
     return div({ className: 'report-view-container' },
+      hasPendingScoring && p({ className: 'scoring-pending-notice', role: 'status' },
+        `有 ${report.pendingScoringCount} 道已作答案例题待评分。LLM 暂不可用，未生成总分，不计入错题或复习资料。答案已保留。`),
+      regradeMessage && p({ role: 'status' }, regradeMessage),
       // Answers Revealed / AI Assistance Used Warning Banner (AC-A2, AC-Q2)
       hasAssistedOrRevealed && div({ className: 'answers-revealed-warning-banner assisted-banner' },
         span({ className: 'warn-icon' }, '⚠️'),
@@ -256,10 +277,10 @@
           ),
           div({ className: 'score-display' },
             div({ className: 'score-number-group' },
-              span({ className: 'score-val' }, score),
+              span({ className: 'score-val' }, hasPendingScoring ? '待评分' : score),
               span({ className: 'score-max' }, unansweredCount > 0 ? ` / ${maxScore} 分 (已答总分 ${answeredMaxScore} 分)` : ` / ${maxScore} 分`)
             ),
-            div({ className: `pass-tag ${isPassed ? 'pass' : 'fail'}` },
+            !hasPendingScoring && div({ className: `pass-tag ${isPassed ? 'pass' : 'fail'}` },
               isStandardFullExam
                 ? (isPassed ? '🎉 成绩及格 (≥45分)' : '⚡ 尚未及格 (<45分)')
                 : (isPassed ? `🎉 练习达标 (≥${passThreshold}分，得分率≥60%)` : `⚡ 尚未达标 (<${passThreshold}分，得分率<60%)`)
@@ -270,7 +291,7 @@
         div({ className: 'banner-stats-grid' },
           div({ className: 'stat-box' },
             span({ className: 'stat-label' }, '做题正确率'),
-            span({ className: 'stat-value highlight' }, `${accuracyPercent}%`),
+            span({ className: 'stat-value highlight' }, hasPendingScoring ? '待评分' : `${accuracyPercent}%`),
             span({ className: 'stat-sub' }, `基于已作答 ${answeredCount} 题`)
           ),
           div({ className: 'stat-box' },
@@ -319,13 +340,16 @@
         ),
 
         div({ className: 'report-actions' },
+          report.canRegrade && onRegradeSession && button({
+            type: 'button', className: 'btn-primary', onClick: handleRegrade, disabled: isRegrading
+          }, isRegrading ? '正在评分…' : '重新进行 LLM 评分'),
           onOpenChat && button({
             type: 'button',
             className: 'btn-ask-report-chat',
             onClick: () => onOpenChat({
               type: 'report',
               targetId: report.sessionId || 'current-report',
-              title: `模考分析：${title || '成绩单'}（得分：${score}分）`,
+              title: `模考分析：${title || '成绩单'}（${hasPendingScoring ? '待评分' : `得分：${score}分`}）`,
               sessionId: report.sessionId
             }),
             title: '使用 AI 助教诊断考情与薄弱考点'
@@ -349,6 +373,7 @@
           const userAnswer = item.userAnswer;
           const effectiveAnswer = item.effectiveAnswer;
           const isElectiveUnselected = item.status === 'unselected' || item.isElectiveUnselected;
+          const pendingScoring = item.pendingScoring;
           const isUnanswered = (item.status === 'unanswered' || (isCorrect === null && (!userAnswer || (typeof userAnswer === 'object' && !Object.values(userAnswer).some(v => v && String(v).trim().length > 0))))) && !isElectiveUnselected;
 
           return div({
@@ -360,10 +385,10 @@
               div({ className: 'header-left' },
                 span({ className: 'report-q-num' }, `第 ${idx + 1} 题`),
                 span({ className: `badge-result ${isElectiveUnselected ? 'unselected' : isUnanswered ? 'unanswered' : (isCorrect === true ? 'correct' : isCorrect === false ? 'wrong' : 'case')}` },
-                  isElectiveUnselected ? '⚪ 选做题二选一（未选）' : isUnanswered ? '⏳ 未作答（不扣分）' : (isCorrect === true ? '✓ 作答正确' : isCorrect === false ? '✕ 作答错误' : '✎ 案例解答')
+                  isElectiveUnselected ? '⚪ 选做题二选一（未选）' : pendingScoring ? '⏳ 待评分' : isUnanswered ? '⏳ 未作答（不扣分）' : (isCorrect === true ? '✓ 作答正确' : isCorrect === false ? '✕ 作答错误' : '✎ 案例解答')
                 ),
                 span({ className: 'report-score-badge' },
-                  isElectiveUnselected ? `不计分 / 15 分（未选题，不计入总分与错题）` : isUnanswered ? `得分：0 / ${item.maxScore} 分（未作答不评分）` : `得分：${item.score !== null && item.score !== undefined ? item.score : 0} / ${item.maxScore} 分`
+                  isElectiveUnselected ? `不计分 / 15 分（未选题，不计入总分与错题）` : pendingScoring ? '得分：待评分' : isUnanswered ? `得分：0 / ${item.maxScore} 分（未作答不评分）` : `得分：${item.score !== null && item.score !== undefined ? item.score : 0} / ${item.maxScore} 分`
                 ),
                 item.caseReview && item.caseReview.humanOverridePoints !== null && item.caseReview.humanOverridePoints !== undefined && span({ className: 'badge-overridden' }, '已教师覆核'),
                 q.chapter && span({ className: 'chapter-badge' }, q.chapter)
@@ -485,7 +510,8 @@
             ),
 
             // AI / System Evaluation Feedback Box
-            q.subject === 'case' && div({ className: 'ai-eval-box' },
+            q.subject === 'case' && pendingScoring && p({ className: 'ai-eval-box' }, item.scoringMessage),
+            q.subject === 'case' && !pendingScoring && div({ className: 'ai-eval-box' },
               div({ className: 'ai-eval-header' },
                 span({ className: 'ai-badge' }, (item.caseReview && item.caseReview.evaluatorType === 'llm') ? '🤖 AI智能评分' : '⚙️ 规则引擎评分'),
                 span({ className: 'ai-score-label' }, `AI/系统原始得分：${(item.caseReview && item.caseReview.points !== undefined) ? item.caseReview.points : item.score} / ${item.maxScore} 分`),
@@ -519,7 +545,7 @@
             ),
 
             // Teacher Review Interactive Form Panel
-            q.subject === 'case' && (() => {
+            q.subject === 'case' && item.caseReview && !pendingScoring && (() => {
               const isEditing = openOverrideId === q.id;
               const hasOverride = item.caseReview && item.caseReview.humanOverridePoints !== null && item.caseReview.humanOverridePoints !== undefined;
               const form = overrideForms[q.id] || {

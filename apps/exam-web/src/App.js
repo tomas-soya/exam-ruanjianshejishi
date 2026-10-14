@@ -641,6 +641,17 @@
       }
     };
 
+    const handleRegradeSession = async () => {
+      if (!report?.sessionId) return;
+      const updated = await client.regradeSession(report.sessionId);
+      setReport(updated);
+      const [wrongData, queueData] = await Promise.all([
+        client.listWrongQuestions().catch(() => null), client.getReviewQueue().catch(() => null)
+      ]);
+      if (wrongData) setWrongQuestions(wrongData);
+      if (queueData) setReviewQueue(queueData);
+    };
+
     // 5.2 Human Review Override for Case Questions
     const handleOverrideCaseScore = async (questionId, { points, notes }) => {
       if (!report || !report.sessionId) return;
@@ -720,7 +731,7 @@
           setChatContext({
             type: 'report',
             targetId: report.sessionId || 'current-report',
-            title: `模考分析：${report.title || '成绩单'}（得分：${report.score}分）`,
+            title: `模考分析：${report.title || '成绩单'}（${report.score == null ? '待评分' : `得分：${report.score}分`}）`,
             sessionId: report.sessionId
           });
         } else if (activeTab === 'materials') {
@@ -950,6 +961,7 @@
         // View 7: Post-Exam Report
         activeTab === 'report' && React.createElement(ReportView, {
           report,
+          onRegradeSession: handleRegradeSession,
           onBackToHome: handleBackToHome,
           onRetestWrong: () => {
             if (!report) return;

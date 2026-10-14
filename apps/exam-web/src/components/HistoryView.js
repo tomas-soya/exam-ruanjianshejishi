@@ -219,7 +219,7 @@
                 return div({ className: 'session-score-row' },
                   div({ className: 'score-tag-item' },
                     span({ className: 'tag-label' }, '模考得分：'),
-                    strong({ className: 'tag-val score-highlight' }, `${effectiveScore} / ${effectiveMaxScore} 分`)
+                    strong({ className: 'tag-val score-highlight' }, s.score == null ? '待评分' : `${effectiveScore} / ${effectiveMaxScore} 分`)
                   ),
                   div({ className: 'score-tag-item' },
                     span({ className: 'tag-label' }, isCaseSession ? '做题得分率：' : '做题正确率：'),

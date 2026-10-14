@@ -514,6 +514,12 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
         return;
       }
 
+      const regradeMatch = pathname.match(/^\/api\/v1\/sessions\/([0-9a-fA-F-]+)\/regrade$/);
+      if (regradeMatch && method === 'POST') {
+        sendSuccess(res, await examService.regradeSession(regradeMatch[1]));
+        return;
+      }
+
       // Route 10: Get session report
       const reportMatch = pathname.match(/^\/api\/v1\/sessions\/([0-9a-fA-F-]+)\/report$/);
       if (reportMatch && method === 'GET') {

@@ -12,7 +12,7 @@ function hasSubstantiveAnswer(answer) {
 }
 
 function isLossEvidence(ev) {
-  if (!ev || ev.status === 'unanswered' || ev.status === 'unselected' || ev.isElectiveUnselected ||
+  if (!ev || ev.status === 'pending_scoring' || ev.pendingScoring || ev.status === 'unanswered' || ev.status === 'unselected' || ev.isElectiveUnselected ||
       !hasSubstantiveAnswer(ev.userAnswer)) return false;
   return ev.isCorrect === false ||
     (Number.isFinite(ev.points) && Number.isFinite(ev.maxPoints) && ev.points < ev.maxPoints) ||

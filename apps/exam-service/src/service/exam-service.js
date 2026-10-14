@@ -7,6 +7,7 @@ const { DatabaseSync } = require('node:sqlite');
 const {
   gradeObjectiveQuestion,
   assertStrictAnswerIsolation,
+  sanitizeCaseQuestion,
   validateCaseScoreResult,
   calculateEffectiveMaxScore,
   resolveCaseElectiveSelection
@@ -287,6 +288,7 @@ class ExamService {
 
   _isCaseQuestionFullyAnswered(rawQ, rawAns) {
     if (!rawAns) return false;
+    const expectedSubs = sanitizeCaseQuestion(rawQ || {}).subQuestions;
     let parsed = rawAns;
     if (typeof rawAns === 'string') {
       const trimmed = rawAns.trim();
@@ -298,40 +300,14 @@ class ExamService {
       }
     }
     if (typeof parsed === 'string') {
-      return parsed.trim().length > 0;
+      return expectedSubs.length === 1 && parsed.trim().length > 0;
     }
     if (typeof parsed !== 'object' || parsed === null) {
       return false;
     }
 
-    // Determine expected subquestion count
-    let expectedCount = 0;
-    if (rawQ) {
-      if (Array.isArray(rawQ.subquestions) && rawQ.subquestions.length > 0) {
-        expectedCount = rawQ.subquestions.length;
-      } else if (typeof rawQ.subquestions_count === 'number' && rawQ.subquestions_count > 0) {
-        expectedCount = rawQ.subquestions_count;
-      } else if (rawQ.shared_stem || rawQ.sharedStem) {
-        const stem = String(rawQ.shared_stem || rawQ.sharedStem);
-        const matches = stem.match(/【问题\s*[1-9一二三四五]/g);
-        if (matches && matches.length > 0) {
-          expectedCount = matches.length;
-        }
-      }
-    }
-    if (expectedCount === 0) {
-      expectedCount = 4;
-    }
-
-    // Inspect subquestion values
-    const validSubs = Object.values(parsed).filter(v => {
-      if (v === null || v === undefined) return false;
-      if (typeof v === 'string') return v.trim().length > 0;
-      if (typeof v === 'object') return Object.values(v).some(sub => typeof sub === 'string' && sub.trim().length > 0);
-      return Boolean(v);
-    });
-
-    return validSubs.length >= expectedCount;
+    // Use the same IDs and boundaries as the displayed answer fields.
+    return expectedSubs.every(sub => isAnswerObjectPopulated(parsed[sub.id]));
   }
 
   /**
@@ -590,10 +566,119 @@ class ExamService {
     });
   }
 
-  /**
-   * Submits exam session, runs deterministic objective scoring, updates wrong questions
-   * and review queue, and produces full session report.
-   */
+  async evaluateCaseOrDefer(params) {
+    try {
+      return await this.caseEvaluator.evaluateCaseQuestion(params);
+    } catch (err) {
+      if (err.code !== 'CASE_SCORING_UNAVAILABLE') throw err;
+      return null;
+    }
+  }
+
+  deferCaseScoring(answerId, isElectiveUnselected = false) {
+    answerRepo.updateAnswerGrading(this.db, answerId, {
+      isCorrect: null,
+      score: null,
+      breakdown: { status: 'pending_scoring', isElectiveUnselected }
+    });
+  }
+
+  async regradeSession(sessionId) {
+    const report = this.getSessionReport(sessionId);
+    if (!report) {
+      const err = new Error('答题记录不存在');
+      err.code = 'SESSION_NOT_FOUND';
+      err.statusCode = 404;
+      throw err;
+    }
+    if (!this.inFlightRegrades) this.inFlightRegrades = new Map();
+    if (this.inFlightRegrades.has(sessionId)) return this.inFlightRegrades.get(sessionId);
+    if (!report.canRegrade) return report;
+
+    const work = (async () => {
+      try {
+        const results = [];
+        // Complete all LLM calls before writing: a failed retry preserves every saved result.
+        for (const item of report.questions.filter(q => q.canRegrade)) {
+          const raw = this.bankLoader.getRawQuestion(item.question.id);
+          const result = await this.caseEvaluator.evaluateCaseQuestion({
+            sessionId, questionId: raw.id, userAnswer: item.userAnswer,
+            caseTitle: raw.case_title || raw.caseTitle || '',
+            sharedStem: raw.shared_stem || raw.sharedStem || '',
+            solutionAndAnalysis: raw.solution_and_analysis || '', maxPoints: 15
+          });
+          if (result.evaluatorType !== 'llm') {
+            const err = new Error('LLM 评分不可用，原答卷与评分已保留。');
+            err.code = 'CASE_SCORING_UNAVAILABLE';
+            err.statusCode = 503;
+            throw err;
+          }
+          results.push({ item, raw, result });
+        }
+        const session = sessionRepo.getSession(this.db, sessionId);
+        if (!session) throw new Error('答题记录已删除');
+        const appliedIds = new Set();
+        this.db.exec('BEGIN IMMEDIATE');
+        try {
+          for (const { item, raw, result } of results) {
+            const humanReview = this.db.prepare(`SELECT id FROM case_reviews
+              WHERE session_id = ? AND question_id = ? AND human_override_points IS NOT NULL`).get(sessionId, raw.id);
+            if (humanReview) continue;
+            const answer = answerRepo.getAnswersForSession(this.db, sessionId).find(a => a.questionId === raw.id);
+            const isPass = result.points >= 9;
+            const unselected = item.isElectiveUnselected;
+            answerRepo.updateAnswerGrading(this.db, answer.id, {
+              isCorrect: unselected ? null : isPass,
+              score: unselected ? null : result.points,
+              breakdown: unselected ? { status: 'unselected', evalPoints: result.points } : result.breakdown
+            });
+            this.db.prepare('DELETE FROM case_reviews WHERE session_id = ? AND question_id = ?').run(sessionId, raw.id);
+            caseReviewRepo.saveCaseReview(this.db, {
+              ...result, answerId: answer.id, sessionId, questionId: raw.id
+            });
+            appliedIds.add(raw.id);
+            if (!unselected) {
+              if (!isPass && item.isCorrect !== false) {
+                wrongQuestionsRepo.recordWrongQuestion(this.db, {
+                  questionId: raw.id, paperId: raw.paper_id || raw.paperId || session.paperId || 'unknown',
+                  chapter: raw.chapter || '未分类', questionType: 'case'
+                });
+              } else if (isPass && item.isCorrect === false) {
+                // Remove only this attempt's obsolete contribution; retain other attempts.
+                this.db.prepare(`DELETE FROM wrong_questions WHERE question_id = ? AND wrong_count = 1
+                  AND NOT EXISTS (SELECT 1 FROM exam_answers WHERE question_id = ? AND is_correct = 0)`).run(raw.id, raw.id);
+                this.db.prepare('UPDATE wrong_questions SET wrong_count = wrong_count - 1 WHERE question_id = ? AND wrong_count > 1').run(raw.id);
+              }
+              if (item.pendingScoring || item.score == null) {
+                reviewQueueRepo.recordReviewResult(this.db, raw.id, isPass);
+              }
+            }
+          }
+          const updated = this.getSessionReport(sessionId);
+          const total = updated.questions.reduce((sum, q) => sum + (q.isElectiveUnselected ? 0 : (q.score || 0)), 0);
+          this.db.prepare(`UPDATE exam_sessions SET score = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`)
+            .run(updated.pendingScoringCount ? null : total, sessionId);
+          this.materialSyncManager?.enqueueSessionSubmission({
+            sessionId, practiceMode: session.practiceMode || 'exam', triggerType: 'case_regrade', processQueue: false,
+            reportQuestions: updated.questions.filter(q => appliedIds.has(q.question.id))
+          });
+          this.db.exec('COMMIT');
+        } catch (err) {
+          this.db.exec('ROLLBACK');
+          throw err;
+        }
+        const updatedReport = this.getSessionReport(sessionId);
+        this.materialSyncManager?.triggerProcessQueue?.();
+        return updatedReport;
+      } finally {
+        this.inFlightRegrades.delete(sessionId);
+      }
+    })();
+    this.inFlightRegrades.set(sessionId, work);
+    return work;
+  }
+
+  /** Submit once; unavailable case scoring keeps the submitted answers pending. */
   async submitSession(sessionId) {
     const session = sessionRepo.getSession(this.db, sessionId);
     if (!session) {
@@ -752,7 +837,7 @@ class ExamService {
         if (isUnselectedElective) {
           // Unselected elective question: do NOT add points to totalScore, do NOT count in wrongCount or queue
           if (hasAnswered) {
-            const evalResult = await this.caseEvaluator.evaluateCaseQuestion({
+            const evalResult = await this.evaluateCaseOrDefer({
               sessionId,
               questionId: rawQ.id,
               userAnswer,
@@ -761,6 +846,10 @@ class ExamService {
               solutionAndAnalysis: rawQ.solution_and_analysis || '',
               maxPoints
             });
+            if (!evalResult) {
+              this.deferCaseScoring(currentRecordId, true);
+              continue;
+            }
 
             answerRepo.updateAnswerGrading(this.db, currentRecordId, {
               isCorrect: null,
@@ -806,7 +895,7 @@ class ExamService {
           }
         } else if (hasAnswered) {
           answeredMaxScore += maxPoints;
-          const evalResult = await this.caseEvaluator.evaluateCaseQuestion({
+          const evalResult = await this.evaluateCaseOrDefer({
             sessionId,
             questionId: rawQ.id,
             userAnswer,
@@ -815,6 +904,10 @@ class ExamService {
             solutionAndAnalysis: rawQ.solution_and_analysis || '',
             maxPoints
           });
+          if (!evalResult) {
+            this.deferCaseScoring(currentRecordId);
+            continue;
+          }
 
           totalScore += evalResult.points;
           const isPass = evalResult.points >= Math.round(maxPoints * 0.6);
@@ -874,7 +967,9 @@ class ExamService {
 
     // 3. Finalize session submission
     sessionRepo.updateSessionSubmission(this.db, sessionId, {
-      score: totalScore,
+      score: answerRepo.getAnswersForSession(this.db, sessionId).some(a =>
+        a.scoreBreakdown?.status === 'pending_scoring' && !a.scoreBreakdown?.isElectiveUnselected
+      ) ? null : totalScore,
       maxScore: computedMaxScore,
       answeredCount,
       status: 'submitted'
@@ -943,6 +1038,8 @@ class ExamService {
     let correctCount = 0;
     let wrongCount = 0;
     let unansweredCount = 0;
+    let pendingScoringCount = 0;
+    let regradableCount = 0;
     let answeredMaxScore = 0;
     const reportQuestions = [];
 
@@ -965,6 +1062,7 @@ class ExamService {
       const isCorrect = isUnselectedElective ? null : (ansRec ? ansRec.isCorrect : null);
       const score = isUnselectedElective ? null : (ansRec ? ansRec.score : null);
       const maxScore = isCase ? 15 : 1;
+      const pendingScoring = isCase && ansRec?.scoreBreakdown?.status === 'pending_scoring';
 
       if (!isUnselectedElective) {
         if (isCorrect === true) {
@@ -972,6 +1070,9 @@ class ExamService {
           answeredMaxScore += maxScore;
         } else if (isCorrect === false) {
           wrongCount++;
+          answeredMaxScore += maxScore;
+        } else if (pendingScoring) {
+          pendingScoringCount++;
           answeredMaxScore += maxScore;
         } else {
           unansweredCount++;
@@ -1026,6 +1127,8 @@ class ExamService {
       let status;
       if (isUnselectedElective) {
         status = 'unselected';
+      } else if (pendingScoring) {
+        status = 'pending_scoring';
       } else if (isCorrect === true) {
         status = 'correct';
       } else if (isCorrect === false) {
@@ -1036,6 +1139,10 @@ class ExamService {
         status = 'unanswered';
       }
 
+      const canRegrade = isCase && isAnswerObjectPopulated(ansRec?.userAnswer) &&
+        caseReview?.humanOverridePoints == null &&
+        (pendingScoring || !caseReview || caseReview.evaluatorType === 'rule');
+      if (canRegrade) regradableCount++;
       reportQuestions.push({
         question: sanitized,
         userAnswer: ansRec ? ansRec.userAnswer : null,
@@ -1044,6 +1151,9 @@ class ExamService {
         score,
         maxScore,
         status,
+        pendingScoring,
+        canRegrade,
+        scoringMessage: pendingScoring ? 'LLM 暂不可用，未进行评分。答案已保留，可稍后重新评分。' : undefined,
         isElective: isStandard6Case && (rawQ.id === rawQuestions[4].id || rawQ.id === rawQuestions[5].id),
         isSelected: isStandard6Case ? (rawQ.id === electiveResolution?.selectedId) : undefined,
         isElectiveUnselected: isUnselectedElective,
@@ -1056,7 +1166,7 @@ class ExamService {
     }
 
     const totalQuestions = rawQuestions.length;
-    const answeredCount = correctCount + wrongCount;
+    const answeredCount = correctCount + wrongCount + pendingScoringCount;
 
     let effectiveMaxScore = session.maxScore || totalQuestions;
     let effectiveScore = session.score || 0;
@@ -1088,15 +1198,17 @@ class ExamService {
       chapter: session.chapter,
       title: session.title,
       status: session.status,
-      score: effectiveScore,
+      score: pendingScoringCount > 0 ? null : effectiveScore,
       maxScore: effectiveMaxScore,
-      accuracy,
+      accuracy: pendingScoringCount > 0 ? null : accuracy,
       totalQuestions,
       answeredCount,
       unansweredCount,
       answeredMaxScore: isStandard6Case ? Math.min(75, answeredMaxScore) : answeredMaxScore,
       correctCount,
       wrongCount,
+      pendingScoringCount,
+      canRegrade: regradableCount > 0,
       submittedAt: session.submittedAt || new Date().toISOString(),
       questions: reportQuestions
     };

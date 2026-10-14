@@ -46,11 +46,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "1f1d47da608a0cca661c7bae87df4b1ce0abeb634d3d4900dfb6eb7706d7aac6"
+      "sha256": "0ab8cf4a49208f12d470237192bb633fcc2e86b9884c84a7bef8d80aacd3741a"
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "9e796d25a8aa0352ec6c533c22f81a4781a2a2f72505098c66e920084bd7a78b"
+      "sha256": "a18793e52c73d5a278ee6a096b2c05f960a6d2af934a4e30413e48d2175e6c15"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -62,7 +62,7 @@
     },
     {
       "path": "apps/exam-contracts/dist/index.js",
-      "sha256": "136d9db2010fe9c5371f0f25dbf6c9b2f19721b94b59bf401e919fe27266a3c7"
+      "sha256": "7e5c393d561d7749105e9f4224d028d868cad468e245716616116eea15c45a1a"
     },
     {
       "path": "apps/exam-contracts/dist/index.mjs",
@@ -70,7 +70,7 @@
     },
     {
       "path": "apps/exam-contracts/package.json",
-      "sha256": "8f0419e7aaaed45db5c402b0548bef0feb86de23de31420ead8d57be55bc9043"
+      "sha256": "3a3217e384a2b3eebf15165ec96e74beea4cf8f6f2ac768bf85be2046616221a"
     },
     {
       "path": "apps/exam-contracts/src/index.ts",
@@ -78,11 +78,11 @@
     },
     {
       "path": "apps/exam-contracts/src/isolation.ts",
-      "sha256": "46dad57dd7d78763366367a27bc50be88062d573772cd6b2b5abbf074c6704b3"
+      "sha256": "4a06634763f989b2e4ad1233c669f4ac5eec0093eaa1f125108e2a390474f089"
     },
     {
       "path": "apps/exam-contracts/src/openapi.ts",
-      "sha256": "ca4fea384becd2cbb0dfeeb358be0cf5c913d748b029015644207a6b8988658e"
+      "sha256": "e5dc8fb4eef2c5f9a54ba06550fe67f93cf562fb8e23e7aed91e45ee0c0e0382"
     },
     {
       "path": "apps/exam-contracts/src/scoring.ts",
@@ -90,11 +90,11 @@
     },
     {
       "path": "apps/exam-contracts/src/types.ts",
-      "sha256": "fd9cd85fb5103a64a311c4802bace5ffbf2e3205ce2a84ecae1331efa98d98b1"
+      "sha256": "5a2ae2d50274a8e2145b176314bc49f31d1db640e2088ba9a2e85c4441cecfdf"
     },
     {
       "path": "apps/exam-llm/package.json",
-      "sha256": "bde943dfe0f0deb975767f968890f8b6d17c5066cb1ae80187727959ebc315fd"
+      "sha256": "6c0131c0d96e533b1f0628cde3e9e35223601538f27674f14731e8e2d0db9d29"
     },
     {
       "path": "apps/exam-llm/src/adapter/env-loader.js",
@@ -134,11 +134,11 @@
     },
     {
       "path": "apps/exam-llm/src/materials/personal-materials-synthesizer.js",
-      "sha256": "0aea8bcbda21e39796c9983cde279b3ae44add173a97da53bd5c8db5fd36d8de"
+      "sha256": "8d4a7b590fe8f0564ad287b6be94676ee8afbd500989804a2d1dfb0e8ebfbe0c"
     },
     {
       "path": "apps/exam-llm/src/materials/review-cards.js",
-      "sha256": "4d305cacb4f389964e3917d9e530e07f4455755b1a6b713d3ab400bf533d8a29"
+      "sha256": "8c58bdf298068b3da4f6d0a83554369d348de8ccc41d2f2e15e41e5d0b85c33e"
     },
     {
       "path": "apps/exam-llm/src/priority/algorithm.js",
@@ -150,7 +150,7 @@
     },
     {
       "path": "apps/exam-llm/src/rubric/case-evaluator.js",
-      "sha256": "ef216725a21e04f649cbcc23f2e481337830394bb8f1c12d696b90084268b07a"
+      "sha256": "9a244b503488b3a7b4deec82d9d2012e5ce311ed0448c1af746e63fe620dc2c4"
     },
     {
       "path": "apps/exam-llm/src/rubric/prompt-builder.js",
@@ -162,7 +162,7 @@
     },
     {
       "path": "apps/exam-service/package.json",
-      "sha256": "e80e090cbfadbf55c51f809e700881aa1d633424d99d7dd2f56b197b6d3136b1"
+      "sha256": "8c2fa501365b4a7db03711d1bf5acd29ab75e2a694f2f9c59b98e00b87b12f3c"
     },
     {
       "path": "apps/exam-service/src/bank/identifier-map.js",
@@ -258,19 +258,19 @@
     },
     {
       "path": "apps/exam-service/src/material/material-sync-manager.js",
-      "sha256": "fc6b0671c7e14a3c6abfaa4c2017d779a218c4870f23afa8c20b6aa2a230c662"
+      "sha256": "10b72f51356ccecb9d95c131811e1491f310de75f596559063958ddef1d16bb6"
     },
     {
       "path": "apps/exam-service/src/scoring/case-evaluator.js",
-      "sha256": "a893b8b4a14f34565cdf89e0305791e1351f5ad45d84a29b581a1f3c987638f3"
+      "sha256": "693415700a3df7bb42f0bf28d06fc4b8d7a15c73d462d4a66253d684d1bb0801"
     },
     {
       "path": "apps/exam-service/src/server.js",
-      "sha256": "5f326fd92d2a33b6468456e24d579a942994356325493573f8ed53077b44b486"
+      "sha256": "276f3cbf6d45527cc5426f401dffd06db56a44834ba3f7d47292a9b7af960a0c"
     },
     {
       "path": "apps/exam-service/src/service/exam-service.js",
-      "sha256": "a72f784409d92c7d2e3692bd72ca552c0dbd48c6dbd89c1cd1f9c205af95fbc5"
+      "sha256": "2c88c786cf045972942e58038c4649ca622d91182b007337bb18617183879d77"
     },
     {
       "path": "apps/exam-service/src/unified-server.js",
@@ -282,7 +282,7 @@
     },
     {
       "path": "apps/exam-web/package.json",
-      "sha256": "a43c7703c1266ccf3e9a2df1b4891dca70e622325053ba87dc20efdb3ee50c1d"
+      "sha256": "30d9d3d63f838706e2263501d567d09c62bfb4a68cafb200be14e006a851928c"
     },
     {
       "path": "apps/exam-web/public/css/style.css",
@@ -310,11 +310,11 @@
     },
     {
       "path": "apps/exam-web/src/App.js",
-      "sha256": "e5f54544a6d43353062cba3fe40979bcf5842802686802c3afc3c51dcf20e01f"
+      "sha256": "3d00ae2027ead43cd4a015eebf0b4d609c6e7415f43afe41ada649a63514e7fe"
     },
     {
       "path": "apps/exam-web/src/api/client.js",
-      "sha256": "50aef8b3e97ad81fce942ae2345af179213cd980bfb7b09ae0333c2cd9e81efd"
+      "sha256": "6d1cd5501a7135258adfc35b39efabbbd3e96a1576fd014c3e6d1dc3d8afca3c"
     },
     {
       "path": "apps/exam-web/src/components/AnswerSheet.js",
@@ -322,7 +322,7 @@
     },
     {
       "path": "apps/exam-web/src/components/CaseQuestion.js",
-      "sha256": "3b56e0f907375e608557ef9505473d74363759b2bb2cb6cfc004d466edaf2dbc"
+      "sha256": "a0ce2e576bf8e28b8d2aa23392559a574e10b2e2d1d9ccf86e2195fd3473af94"
     },
     {
       "path": "apps/exam-web/src/components/ChapterList.js",
@@ -346,7 +346,7 @@
     },
     {
       "path": "apps/exam-web/src/components/HistoryView.js",
-      "sha256": "5867a27fb438b814e68c3b17d0a3fe70faee2a83b1bec62371190eeabd80fba0"
+      "sha256": "ec20bbcb9afc5ad9a0d94b005d2ae6f705c543ab2e6aef73e86c734e58485d37"
     },
     {
       "path": "apps/exam-web/src/components/ImageModal.js",
@@ -370,7 +370,7 @@
     },
     {
       "path": "apps/exam-web/src/components/ReportView.js",
-      "sha256": "ceb44e8130a0af8d904eb2ca66630c90c365ae338b91733e65fa9a03cec435f5"
+      "sha256": "453104877011c5544eb2370b6376566414ed5c2ba8c35fa86ec6818ca3aa11ba"
     },
     {
       "path": "apps/exam-web/src/components/ReviewQueueView.js",
@@ -398,7 +398,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "4e2cdb052eb5a5d183622a8ca33390a63dac4d07032804c20f89b1353adf4dbe"
+      "sha256": "11d118d749e400ebf2be1d99c661de63f8bd0ca446f37d828624d00d82f7f5ad"
     },
     {
       "path": "scripts/build-portable.mjs",
@@ -449,12 +449,24 @@
       "sha256": "55f519f8235106874fb5d8a98357b3da6500da663bbf8c00f62894c909714c52"
     },
     {
+      "path": "test/case-llm-recovery.test.cjs",
+      "sha256": "5a666d56c723e16916aae85254195fa65d4f6255c1a01bfad6b72f7ecf760b0c"
+    },
+    {
+      "path": "test/case-subquestions.test.cjs",
+      "sha256": "39a4c0fd1ac9a60bb305e04d0a4522c5c2588fd2264f3bcb99a1f1e52a21297e"
+    },
+    {
       "path": "test/gemini-materials-compatibility.test.cjs",
       "sha256": "477da54caf51c687e126909dd2005be1b4eb1059636a50f4a2041843dce3f51a"
     },
     {
       "path": "test/materials-polling-and-truncation.test.cjs",
       "sha256": "b3bf65ee0c47825d0c15af7a0035781ab2fe9456be73805b111b76e1627217c2"
+    },
+    {
+      "path": "test/materials-timeout.test.cjs",
+      "sha256": "74ed6006a5de42d6b48ab59c1683b967aa089928d9013539c78807a6c6533d8b"
     },
     {
       "path": "test/open-source-privacy.test.cjs",

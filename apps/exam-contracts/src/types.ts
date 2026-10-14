@@ -262,7 +262,10 @@ export interface QuestionReportItem {
   isCorrect: boolean | null;
   score: number | null;
   maxScore: number;
-  status?: 'correct' | 'wrong' | 'unanswered' | 'case';
+  status?: 'correct' | 'wrong' | 'unanswered' | 'case' | 'unselected' | 'pending_scoring';
+  pendingScoring?: boolean;
+  canRegrade?: boolean;
+  scoringMessage?: string;
   analysis?: string;
   solutionCodeBlocks?: QuestionCodeBlock[];
   solutionImages?: QuestionAsset[];
@@ -279,9 +282,11 @@ export interface SessionReport {
   chapter: string | null;
   title: string;
   status: SessionStatus;
-  score: number;
+  score: number | null;
   maxScore: number;
-  accuracy: number; // 0.0 - 1.0 (based on answered questions)
+  accuracy: number | null; // null while case scoring is pending
+  pendingScoringCount?: number;
+  canRegrade?: boolean;
   totalQuestions: number;
   answeredCount: number;
   unansweredCount: number;

@@ -68,11 +68,9 @@
     const stemCodeBlocks = (question.codeBlocks || []).filter(cb => !cb.type || cb.type === 'stem');
     const stemImages = (question.images || []).filter(img => !img.type || img.type === 'stem');
 
-    const numberedProblems = Array.from(String(question.sharedStem || '').matchAll(/【问题\s*([0-9０-９]+)】/g));
-    const inferredCount = numberedProblems.length || 1;
     const subQuestions = question.subQuestions && question.subQuestions.length
       ? question.subQuestions
-      : Array.from({ length: inferredCount }, (_, idx) => ({ id: `sub${idx + 1}`, title: `【问题 ${idx + 1}】`, stem: '' }));
+      : [{ id: 'sub1', title: '【问题 1】', stem: '' }];
     const visibleSubTab = Math.min(activeSubTab, subQuestions.length);
 
     const currentAnswers = typeof userAnswer === 'object' && userAnswer !== null
@@ -87,7 +85,7 @@
       onAnswerChange(updated);
     };
 
-    const answeredSubsCount = Object.values(currentAnswers).filter(val => val && String(val).trim().length > 0).length;
+    const answeredSubsCount = subQuestions.filter(sub => String(currentAnswers[sub.id] || '').trim().length > 0).length;
     const isElective = totalQuestions === 6 && (currentIndex === 4 || currentIndex === 5);
 
     return div({ className: `question-card case-card mode-${practiceMode}` },

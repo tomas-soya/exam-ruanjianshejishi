@@ -5,6 +5,14 @@ const { detectPromptInjection } = require('../rubric/score-sanitizer');
 const { buildPersonalMaterialsPrompt, buildConciseFallbackPrompt, buildReviewConsolidationPrompt } = require('./materials-prompt-builder');
 const { isLossEvidence, parseReviewCards, renderReviewCards } = require('./review-cards');
 
+// Materials include extraction, consolidation and evidence review. A short
+// timeout saved for chat/scoring must not cut off these longer requests.
+const MIN_MATERIALS_TIMEOUT_MS = 120000;
+function resolveMaterialsTimeoutMs(value) {
+  return Number.isFinite(value) && value > 0
+    ? Math.max(value, MIN_MATERIALS_TIMEOUT_MS) : MIN_MATERIALS_TIMEOUT_MS;
+}
+
 /**
  * Personal Materials Synthesizer (AC-1, AC-2, AC-3)
  * Synthesis of personal concise wrong-question review key points (错题复习要点)
@@ -13,7 +21,7 @@ const { isLossEvidence, parseReviewCards, renderReviewCards } = require('./revie
 class PersonalMaterialsSynthesizer {
   constructor(options = {}) {
     this.gatewayAdapter = options.gatewayAdapter || new GatewayAdapter();
-    this.timeoutMs = options.timeoutMs || 45000;
+    this.timeoutMs = resolveMaterialsTimeoutMs(options.timeoutMs);
     this.maxRetries = options.maxRetries !== undefined ? options.maxRetries : 2;
     this.batchSize = (typeof options.batchSize === 'number' && options.batchSize > 0) ? options.batchSize : 2;
   }
@@ -25,7 +33,11 @@ class PersonalMaterialsSynthesizer {
     const deepseek = /^deepseek-/i.test(this.gatewayAdapter.model || '');
     return this.gatewayAdapter.chatCompletion({ ...(deepseek ? {
       thinkingMode: 'disabled', responseFormat: { type: 'json_object' }
-    } : {}), ...options });
+    } : {}), ...options,
+      // Apply at the request boundary too: startup hydration and hot reload
+      // can replace this.timeoutMs with the shared setting (often 30 seconds).
+      timeoutMs: resolveMaterialsTimeoutMs(options.timeoutMs ?? this.timeoutMs)
+    });
   }
 
   /**

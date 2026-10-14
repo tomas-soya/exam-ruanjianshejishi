@@ -271,6 +271,18 @@ export const EXAM_OPENAPI_SPEC = {
         }
       }
     },
+    '/sessions/{id}/regrade': {
+      post: {
+        summary: 'Score pending and legacy rule-graded case answers with LLM, refresh report and personal materials',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Updated session report', content: { 'application/json': {
+            schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/SessionReport' } } }
+          } } },
+          '503': { description: 'LLM scoring unavailable; saved answers and results unchanged' }
+        }
+      }
+    },
     '/sessions/{id}/report': {
       get: {
         summary: 'Get report of a submitted session',
@@ -546,9 +558,11 @@ export const EXAM_OPENAPI_SPEC = {
           chapter: { type: 'string', nullable: true },
           title: { type: 'string' },
           status: { type: 'string' },
-          score: { type: 'number' },
+          score: { type: 'number', nullable: true },
           maxScore: { type: 'number' },
-          accuracy: { type: 'number' },
+          accuracy: { type: 'number', nullable: true },
+          pendingScoringCount: { type: 'integer' },
+          canRegrade: { type: 'boolean' },
           totalQuestions: { type: 'number' },
           answeredCount: { type: 'number' },
           correctCount: { type: 'number' },
@@ -562,8 +576,12 @@ export const EXAM_OPENAPI_SPEC = {
                 question: { $ref: '#/components/schemas/SanitizedQuestion' },
                 userAnswer: { type: 'string' },
                 effectiveAnswer: { type: 'string' },
-                isCorrect: { type: 'boolean' },
-                score: { type: 'number' },
+                isCorrect: { type: 'boolean', nullable: true },
+                score: { type: 'number', nullable: true },
+                status: { type: 'string', enum: ['correct', 'wrong', 'unanswered', 'case', 'unselected', 'pending_scoring'] },
+                pendingScoring: { type: 'boolean' },
+                canRegrade: { type: 'boolean' },
+                scoringMessage: { type: 'string' },
                 maxScore: { type: 'number' },
                 analysis: { type: 'string' },
                 materialAnchor: {

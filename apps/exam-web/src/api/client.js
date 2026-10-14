@@ -255,6 +255,10 @@
       return submitPromise;
     }
 
+    async regradeSession(sessionId) {
+      return this._request(`/sessions/${encodeURIComponent(sessionId)}/regrade`, 'POST', null, { timeout: 0 });
+    }
+
     async deleteSession(sessionId) {
       return this._request(`/sessions/${encodeURIComponent(sessionId)}`, 'DELETE');
     }
