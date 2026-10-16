@@ -31,7 +31,9 @@ workflow-snapshot/
 .软件设计师复习材料/
 browser-workbench/
 ai-project-protocol-zh/
-docs/
+docs/*
+!docs/README.md
+!docs/BANK-QUALITY-FOLLOWUP-20261013.md
 AGENTS.md
 UPSTREAM_SYNC.md
 题库/sources/

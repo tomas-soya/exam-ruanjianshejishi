@@ -290,12 +290,13 @@ class MaterialSyncManager {
    * @param {boolean} [options.autoStart=true]
    * @param {object} [options.llmConfig]
    */
-  constructor({ db, synthesizer, autoStart = true, llmConfig = null }) {
+  constructor({ db, synthesizer, autoStart = true, llmConfig = null, concurrency = 2 }) {
     this.db = db;
     this.synthesizer = synthesizer || new PersonalMaterialsSynthesizer();
     this.activeChapters = new Set(); // Concurrency lock per chapterKey
     this.isProcessing = false;
     this.isShuttingDown = false;
+    this.concurrency = Math.max(1, Math.min(concurrency, 4));
 
     this._ensureLlmConfig(llmConfig);
 
@@ -393,6 +394,12 @@ class MaterialSyncManager {
       chapterMap.get(stdChapter.key).evidences.push({
         questionId: q.question.id,
         stem: q.question.questionStem || q.question.sharedStem || '',
+        chapter: q.question.chapter,
+        caseTitle: q.question.caseTitle,
+        language: /C\+\+/i.test(q.question.caseTitle || q.question.sharedStem || '') ? 'cpp' :
+          /Java/i.test(q.question.caseTitle || q.question.sharedStem || '') ? 'java' : null,
+        stemCodeBlocks: q.question.sharedCodeBlocks || q.question.stemCodeBlocks || [],
+        solutionCodeBlocks: q.solutionCodeBlocks || [],
         options: q.question.options || [],
         userAnswer: q.userAnswer,
         standardAnswer: q.effectiveAnswer || (q.solutionCodeBlocks ? '参考解答见解析' : '无'),
@@ -588,26 +595,24 @@ class MaterialSyncManager {
     this.isProcessing = true;
 
     try {
-      const pendingJobs = matRepo.findPendingJobs(this.db);
-
-      for (const job of pendingJobs) {
-        if (this.isShuttingDown) break;
-
-        const chapterKey = job.chapter_key;
-        if (this.activeChapters.has(chapterKey)) {
-          continue;
+      const active = new Set();
+      while (!this.isShuttingDown) {
+        const pendingJobs = matRepo.findPendingJobs(this.db);
+        for (const job of pendingJobs) {
+          if (active.size >= this.concurrency) break;
+          if (this.activeChapters.has(job.chapter_key)) continue;
+          this.activeChapters.add(job.chapter_key);
+          const work = this._executeJob(job).catch(e => {
+            console.warn(`[MaterialSyncManager] Job ${job.id} execution failed:`, e.message);
+            matRepo.updateJobStatus(this.db, job.id, { status: 'failed', errorMessage: '资料更新失败，旧版本已保留', completedAt: new Date().toISOString() });
+            matRepo.updateChapterStatus(this.db, job.chapter_key, { status: 'failed', lastError: '资料更新失败，旧版本已保留' });
+          }).finally(() => { this.activeChapters.delete(job.chapter_key); active.delete(work); });
+          active.add(work);
         }
-
-        this.activeChapters.add(chapterKey);
-
-        try {
-          await this._executeJob(job);
-        } catch (e) {
-          console.warn(`[MaterialSyncManager] Job ${job.id} execution failed:`, e.message);
-        } finally {
-          this.activeChapters.delete(chapterKey);
-        }
+        if (!active.size) break;
+        await Promise.race(active);
       }
+      await Promise.allSettled(active);
     } finally {
       this.isProcessing = false;
     }
@@ -693,6 +698,11 @@ class MaterialSyncManager {
     const mergedEvidences = Array.from(evidenceMap.values());
 
     if (mergedEvidences.length === 0) {
+      if (existingMat?.version > 0 && !existingMat.markdown_content) {
+        matRepo.updateChapterStatus(this.db, chapterKey, { status: 'empty', lastJobId: job.id });
+        matRepo.updateJobStatus(this.db, job.id, { status: 'done', completedAt: new Date().toISOString() });
+        return;
+      }
       // Empty evidence must clear obsolete cards and finish the chapter state;
       // the previous implementation left it stuck as processing with old text.
       this.db.exec('BEGIN IMMEDIATE');
@@ -723,6 +733,8 @@ class MaterialSyncManager {
       } : {
         retainedEvidences: mergedEvidences
       };
+      sanitizedExistingMetadata.evidenceCache = { ...(existingMetadata?.evidenceCache || {}),
+        ...matRepo.loadReviewCheckpoints(this.db, chapterKey) };
 
       const synthResult = await this.synthesizer.synthesizeChapterMaterial({
         chapterKey,
@@ -730,8 +742,22 @@ class MaterialSyncManager {
         subject: payload.subject || stdChapter.subject,
         answeredEvidences: mergedEvidences,
         existingMarkdown: existingMat ? existingMat.markdown_content : null,
-        existingMetadata: sanitizedExistingMetadata
+        existingMetadata: sanitizedExistingMetadata,
+        onCheckpoint: (unitKey, item) => matRepo.saveReviewCheckpoint(this.db, chapterKey, unitKey, item)
       });
+
+      if (synthResult.unchanged) {
+        matRepo.updateChapterStatus(this.db, chapterKey, { status: 'updated', lastJobId: job.id });
+        matRepo.updateJobStatus(this.db, job.id, { status: 'done', completedAt: new Date().toISOString() });
+        return;
+      }
+
+      // Reject a stale writer instead of overwriting a chapter edited by another
+      // process while a model request was in flight.
+      const latest = matRepo.getChapterMaterial(this.db, chapterKey);
+      if (latest?.version !== existingMat?.version) throw new Error('资料版本已变化，请重新更新');
+      this.db.exec('BEGIN IMMEDIATE');
+      try {
 
       const currentVersion = existingMat ? existingMat.version : 0;
       const nextVersion = currentVersion + 1;
@@ -774,6 +800,8 @@ class MaterialSyncManager {
         status: 'done',
         completedAt: new Date().toISOString()
       });
+      this.db.exec('COMMIT');
+      } catch (error) { this.db.exec('ROLLBACK'); throw error; }
 
     } catch (err) {
       // AC-3: Failure preservation - preserve previous version of markdown!
@@ -1204,6 +1232,7 @@ class MaterialSyncManager {
 
 module.exports = {
   MaterialSyncManager,
+  resolveReviewChapter,
   extractConcisePointsFromMarkdown,
   isWrongOrLostPointQuestion,
   sortChapterPoints,

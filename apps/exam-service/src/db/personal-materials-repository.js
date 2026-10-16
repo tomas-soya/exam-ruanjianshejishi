@@ -203,6 +203,20 @@ function resetProcessingJobsToPending(db) {
   return stmt.run();
 }
 
+function loadReviewCheckpoints(db, chapterKey) {
+  const result = {};
+  for (const row of db.prepare('SELECT unit_key,cache_json FROM material_review_checkpoints WHERE chapter_key=?').all(chapterKey)) {
+    try { result[row.unit_key] = JSON.parse(row.cache_json); } catch {}
+  }
+  return result;
+}
+
+function saveReviewCheckpoint(db, chapterKey, unitKey, item) {
+  db.prepare(`INSERT INTO material_review_checkpoints(chapter_key,unit_key,cache_json,updated_at) VALUES(?,?,?,?)
+    ON CONFLICT(chapter_key,unit_key) DO UPDATE SET cache_json=excluded.cache_json,updated_at=excluded.updated_at`)
+    .run(chapterKey, unitKey, JSON.stringify(item), new Date().toISOString());
+}
+
 module.exports = {
   getChapterMaterial,
   listChapterMaterials,
@@ -216,5 +230,7 @@ module.exports = {
   findPendingJobs,
   findProcessingJobs,
   updateJobStatus,
-  resetProcessingJobsToPending
+  resetProcessingJobsToPending,
+  loadReviewCheckpoints,
+  saveReviewCheckpoint
 };

@@ -18,7 +18,10 @@ process.env.OPENAI_BASE_URL = 'http://127.0.0.1:1/v1';
 const bank = new QuestionBankLoader(path.join(root,'题库'));
 
 test('Complete packaged bank, neutral identifiers, valid answers and local image associations',()=>{
-  assert.equal(bank.listVerifiedPapers().length,45);
+  assert.equal(bank.listVerifiedPapers().length,44);
+  const p202411 = bank.listVerifiedPapers().filter(p => p.year === '2024' && p.season === '11' && p.subject === 'objective');
+  assert.equal(p202411.length, 1);
+  assert.equal(p202411[0].totalQuestions, 75);
   let counts={objective:0,case:0};
   let solutions=0;
   for(const subject of ['objective','case']) {
@@ -164,7 +167,8 @@ test('Unified server serves all papers, actual assets and footer with an isolate
     assert.match(html,/该项目完全免费开源，如果你是花钱买到的，那么你被骗了/);
     assert.match(html,/对题目、刷题功能有任何建议，欢迎提交issue/);
     const catalog=await(await fetch(base+'/api/v1/papers')).json();
-    assert.equal(catalog.data.length,45);
+    assert.equal(catalog.data.length,44);
+    assert.equal(catalog.data.filter(p=>p.year==='2024'&&p.season==='11'&&p.subject==='objective').length,1);
     const paper=catalog.data.find(p=>p.subject==='objective');
     const response=await(await fetch(base+'/api/v1/papers/'+paper.id)).json();
     assert.equal(response.success,true);

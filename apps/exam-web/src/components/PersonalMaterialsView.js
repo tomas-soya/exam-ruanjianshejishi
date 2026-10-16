@@ -35,7 +35,7 @@
     { id: '13-英语', title: '13-英语', doc: '选择题/13-英语.md', subject: 'objective', order: 13 },
     // 8 Case Topics
     { id: '01-结构化分析与设计', title: '01-结构化分析与设计', doc: '案例题/01-结构化分析与设计.md', subject: 'case', order: 14 },
-    { id: '02-面向对象设计模式与Java实现', title: '02-面向对象设计模式与Java实现', doc: '案例题/02-面向对象设计模式与Java实现.md', subject: 'case', order: 15 },
+    { id: '02-面向对象设计模式与Java实现', title: '02-面向对象设计模式与C++和Java实现', doc: '案例题/02-面向对象设计模式与Java实现.md', subject: 'case', order: 15 },
     { id: '03-UML类图与面向对象分析', title: '03-UML类图与面向对象分析', doc: '案例题/03-UML类图与面向对象分析.md', subject: 'case', order: 16 },
     { id: '04-数据库设计与关系模式', title: '04-数据库设计与关系模式', doc: '案例题/04-数据库设计与关系模式.md', subject: 'case', order: 17 },
     { id: '05-UML用例图与活动图', title: '05-UML用例图与活动图', doc: '案例题/05-UML用例图与活动图.md', subject: 'case', order: 18 },
@@ -70,10 +70,57 @@
     const lines = markdown.split('\n');
     const elements = [];
     let key = 0;
+    const headingIds = new Map();
+    const inline = text => text.split(/(`[^`]+`|\*\*[^*]+\*\*|\[[^\]]+\]\(#[^)]+\))/g).map((part, index) => {
+      if (part.startsWith('`') && part.endsWith('`')) return code({ key: index }, part.slice(1, -1));
+      if (part.startsWith('**') && part.endsWith('**')) return React.createElement('strong', { key: index }, part.slice(2, -2));
+      const link = part.match(/^\[([^\]]+)\]\((#[^)]+)\)$/);
+      if (link) return React.createElement('a', { key: index, href: link[2] }, link[1]);
+      return part;
+    });
+    const cells = row => {
+      const values = []; let value = '', quoted = false;
+      const body = row.trim().replace(/^\|/, '').replace(/\|$/, '');
+      for (let n = 0; n < body.length; n++) {
+        if (body[n] === '\\' && body[n + 1] === '|') { value += '|'; n++; continue; }
+        if (body[n] === '`') quoted = !quoted;
+        if (body[n] === '|' && !quoted) { values.push(value.trim()); value = ''; }
+        else value += body[n];
+      }
+      values.push(value.trim()); return values;
+    };
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const trimmed = line.trim();
+
+      const fence = trimmed.match(/^(```|~~~)([\w+.-]*)\s*$/);
+      if (fence) {
+        const content = [];
+        const indent = line.length - line.trimStart().length;
+        while (++i < lines.length && lines[i].trim() !== fence[1]) content.push(lines[i].slice(Math.min(indent, lines[i].length - lines[i].trimStart().length)));
+        elements.push(pre({ key: key++, className: 'md-code-block' },
+          code({ className: `language-${fence[2] || 'text'}` }, content.join('\n'))));
+        continue;
+      }
+      const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+      if (heading) {
+        const base = heading[2].replace(/[`*]/g, '').toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/\s/g, '-');
+        const count = headingIds.get(base) || 0; headingIds.set(base, count + 1);
+        elements.push(React.createElement(`h${Math.min(heading[1].length + 1, 6)}`,
+          { key: key++, id: base + (count ? `-${count}` : ''), className: `md-h${heading[1].length}` }, heading[2]));
+        continue;
+      }
+      if (trimmed.startsWith('|') && /^\|?[\s:|-]+\|?$/.test((lines[i + 1] || '').trim())) {
+        const header = cells(trimmed), rows = []; i++;
+        while (i + 1 < lines.length && lines[i + 1].trim().startsWith('|')) rows.push(cells(lines[++i]));
+        const h = React.createElement;
+        elements.push(h('table', { key: key++, className: 'md-table' },
+          h('thead', null, h('tr', null, ...header.map((value, index) => h('th', { key: index }, inline(value))))),
+          h('tbody', null, ...rows.map((row, index) => h('tr', { key: index },
+            ...row.map((value, n) => h('td', { key: n }, inline(value))))))));
+        continue;
+      }
 
       if (!trimmed) {
         elements.push(div({ key: key++, className: 'md-empty-line' }));
@@ -108,7 +155,7 @@
             })
           ));
         } else {
-          elements.push(li({ key: key++, className: 'md-list-item' }, trimmed.slice(2)));
+          elements.push(li({ key: key++, className: 'md-list-item' }, inline(trimmed.slice(2))));
         }
       } else if (/^\d+\./.test(trimmed)) {
         elements.push(li({ key: key++, className: 'md-list-numbered' }, trimmed.replace(/^\d+\.\s*/, '')));
@@ -117,7 +164,7 @@
       } else if (trimmed === '---') {
         elements.push(div({ key: key++, className: 'md-hr' }));
       } else {
-        elements.push(p({ key: key++, className: 'md-paragraph' }, trimmed));
+        elements.push(p({ key: key++, className: 'md-paragraph' }, inline(trimmed)));
       }
     }
 

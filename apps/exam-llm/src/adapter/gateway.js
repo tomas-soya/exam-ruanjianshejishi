@@ -14,7 +14,7 @@ const { loadRuntimeConfig, maskApiKey, sanitizeLogMessage } = require('./env-loa
  */
 class GatewayAdapter {
   constructor(options = {}) {
-    const runtimeConfig = loadRuntimeConfig();
+    const runtimeConfig = options.runtimeConfig || loadRuntimeConfig();
     this.endpoint = options.endpoint || runtimeConfig.endpoint;
     this.model = options.model || runtimeConfig.model;
     this.apiKey = options.apiKey !== undefined ? options.apiKey : runtimeConfig.apiKey;

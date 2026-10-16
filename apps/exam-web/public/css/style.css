@@ -5318,6 +5318,21 @@ body {
 }
 
 /* 4. Dynamic Materials Section (2 summary cards) */
+.md-code-block {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f3f5f8;
+  color: #182334;
+  font: 13px/1.6 Consolas, monospace;
+}
+
+.md-table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: 1rem 0; }
+.md-table th, .md-table td { border: 1px solid #cdd5df; padding: .5rem .7rem; text-align: left; }
+.md-table th { background: #edf2f7; }
+
 .dynamic-materials-section {
   display: flex;
   flex-direction: column;

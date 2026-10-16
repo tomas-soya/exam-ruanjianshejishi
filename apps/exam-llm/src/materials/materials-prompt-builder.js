@@ -12,7 +12,7 @@ function extractBulletPoints(md) {
 const CARD_RULES = `你是软件设计师考试的复习教练，制作可迁移到同类题的错题复习要点。
 目标：让考生知道哪些知识尚需巩固，记住判定规则，下次采取具体防错动作，并能遮住资料自测。
 【纯净考生交付】所有公开字段不得出现题号、题目ID、URL、统计、来源核验、截图、平台纠错过程；refs 仅作内部校验。
-【零外部渲染依赖】公式用纯文本或 Unicode，禁止 LaTeX、数学美元符号、代码块和长表格。
+【零外部渲染依赖】公式用纯文本或 Unicode，禁止 LaTeX、数学美元符号。这一入口输出单行纠错卡；代码语句可用行内代码，完整可运行程序与图示演练由对应静态专题提供，不用单行卡冒充完整教程。
 仅返回 JSON：{"cards":[{"topic":"知识点名称","gap":"具体待巩固的知识或实际错误","memory":"可记忆的判定规则/必要公式及适用条件","action":"遇同类题时可执行的审题、计算或作答检查","check":"一个换掉原题数值/业务名称的自测问题，括号内给出简明答案","refs":["E1"]}]}。
 五个内容字段必须是单行非空文本。中文写作，每张卡片只针对一个可独立纠正的知识问题。
 不要以字数更少为目标：保留必要条件、边界、公式和关键步骤；也不要复述教材、题干、整份参考答案、全部解析或无关背景。
@@ -44,15 +44,31 @@ function formatEvidence(ev, index) {
     maxPoints: ev.maxPoints ?? ev.maxScore,
     feedback: ev.feedback,
     breakdown: ev.breakdown,
+    lossUnit: ev.lossUnit,
+    reviewScope: ev.reviewScope,
+    language: ev.language,
+    stemCodeBlocks: ev.stemCodeBlocks,
+    solutionCodeBlocks: ev.solutionCodeBlocks,
     humanOverride: ev.humanOverride
   });
 }
 
 function buildPersonalMaterialsPrompt({ chapterName, subject = 'objective', answeredEvidences = [] }) {
   const losses = answeredEvidences.filter(isLossEvidence);
+  const contexts = new Map();
+  const formatted = losses.map((ev, index) => {
+    if (ev.reviewScope !== 'scoring-unit') return formatEvidence(ev, index);
+    const id = ev.questionId || `unit${index}`;
+    if (!contexts.has(id)) contexts.set(id, { context: `Q${contexts.size + 1}`, ...JSON.parse(formatEvidence({ ...ev,
+      _reviewRef: undefined, lossUnit: undefined, feedback: undefined, reviewScope: undefined }, index)) });
+    const source = contexts.get(id);
+    return JSON.stringify({ ref: ev._reviewRef, context: source.context, lossUnit: ev.lossUnit,
+      feedback: ev.feedback, reviewScope: ev.reviewScope });
+  });
+  for (const context of contexts.values()) delete context.ref;
   return {
-    systemPrompt: CARD_RULES + '\n必须用 refs 覆盖本批每份证据，某份案例证据可支持多张卡片。不要把旧资料当作已经覆盖的依据。',
-    userPrompt: `章节：${chapterName}；题型：${subject === 'case' ? '案例' : '选择题'}\n考生当前批次错题/失分证据（共 ${losses.length} 题）：\n${losses.map(formatEvidence).join('\n')}\n请根据答案差异提炼复习卡片。`
+    systemPrompt: CARD_RULES + '\n必须用 refs 覆盖本批每份证据。不要把旧资料当作已经覆盖的依据。reviewScope=scoring-unit 表示已细分到独立纠错动作，每份只需一张完整卡片；若同概念可共享一张卡，但不得围绕一个 ref 重复生成整题的其他错误。lossUnit.detail 是本份唯一待纠正的评分差异，feedback 已限定同一范围；完整题干、作答和解析只用于核对规则，不能据它们扩大待补范围。topicHint 非空时请原样作为 topic，以便相同概念合并。已答对部分仅作上下文，不是失分项。代码应按变量声明判断指针/对象/引用；break/return 依据函数控制流，不能要求一律 break。类名允许题设信息后缀；数据流组成不必一律含主键；候选键和外键按完整依赖与唯一性条件判定。自测中的每个答案条件都必须在问题中给出，不能擅加编号、时间或新属性。',
+    userPrompt: `章节：${chapterName}；题型：${subject === 'case' ? '案例' : '选择题'}\n考生当前批次错题/失分证据（共 ${losses.length} 项）：\n${formatted.join('\n')}\n${contexts.size ? `完整上下文（仅用于查证，不得扩写为本批范围外的盲区）：\n${[...contexts.values()].map(value => JSON.stringify(value)).join('\n')}\n` : ''}请根据本批 lossUnit 答案差异提炼复习卡片。`
   };
 }
 

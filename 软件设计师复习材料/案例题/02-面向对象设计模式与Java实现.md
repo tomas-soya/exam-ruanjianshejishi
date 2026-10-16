@@ -1,21 +1,21 @@
 # 面向对象设计模式与 Java/C++ 实现案例
 
-> 本专题专为软考下午试题五（Java 程序设计）与试题六（C++ 程序设计）（15 分二选一选做题）定制。考生拿到题目后，可直接对照设问类型（识别模式、填继承接口、填构造创建、填委托多态、静态语法检查），定位至对应作答卡快速展开推理作答。
+> 本专题专为软考下午C++ 与 Java 面向对象程序设计选答题（15 分二选一选做题）定制。考生拿到题目后，可直接对照设问类型（识别模式、填继承接口、填构造创建、填委托多态、静态语法检查），定位至对应作答卡快速展开推理作答。
 
 ---
 
 ## 1. 设计模式题型识别与考场通用破题流程
 
 ### 1.1 试题识别与题面结构
-- **试题位置**：下午试题五（Java）或试题六（C++），满分 15 分，考题内容同构，仅编程语言与语法不同。
+- **试题位置**：C++ 或 Java 选答题，以卷面语言与选答说明为准，满分 15 分，考题内容同构，仅编程语言与语法不同。
 - **题面三件套**：
   1. **设计意图与业务背景说明**：描述系统遇到的扩展性挑战（如避免类爆炸、解耦算法族、动态通知各界面、统一树形结构、撤销历史恢复）；
   2. **设计模式类图框架**：给出涉及的接口、抽象类、具体实现类、上下文类之间的继承（实线空心三角）、实现（虚线空心三角）与聚合关联（实线带箭头）连线；
-  3. **挖空的源码框架**：给出 5 至 6 处代码空缺（每空 2.5～3 分），要求补充类继承关系、构造器、多态委托调用或对象创建。
+  3. **挖空的源码框架**：代码空位数量与分值以卷面为准，要求补充类继承关系、构造器、多态委托调用或对象创建。
 
 ### 1.2 考场四步快速解题流水线
 ```text
-第 1 步：读意图抓信号，判定模式名称 → 查职责三问与考场速查表，判定具体是 16 种经典模式中的哪一种
+第 1 步：读意图抓信号，判定模式名称 → 查职责三问与考场速查表，先与本章 19 种教学模式的意图和职责核对，遇到未列模式再按题设推理
   ↓
 第 2 步：对照类图角色，定位各空职责 → 明确挖空位置是抽象构件、具体实现、还是环境上下文
   ↓
@@ -55,7 +55,7 @@
      - 已有接口不兼容但需复用老组件 → **适配器模式 (Adapter)**；
      - 撤销与历史状态快照保存 → **备忘录模式 (Memento)**。
 - **【答案形态】**：标准中英文名称（如 `桥接模式` 或 `Bridge 模式`）。
-- **【知识依赖】**：[16 种设计模式考场速记表](#51-16-种经典设计模式考场速查总表)。
+- **【知识依赖】**：[19 种设计模式考场速记表](#51-19-种教学模式与判定依据)。
 
 ---
 
@@ -70,7 +70,7 @@
   - **备忘录模式**：`Originator`（原发器/发起人）、`Memento`（备忘录/快照）、`Caretaker`（负责人/管理者）；
   - **组合模式**：`Component`（抽象构件）、`Leaf`（叶子构件）、`Composite`（容器构件）；
   - **生成器模式**：`Builder`（抽象建造者）、`ConcreteBuilder`（具体建造者）、`Director`（指挥者）、`Product`（产品）。
-- **【知识依赖】**：[各设计模式标准角色体系](#52-16-种设计模式标准双语实现库)。
+- **【知识依赖】**：[各设计模式标准角色体系](#52-c-与-java-完整教学实现库)。
 
 ---
 
@@ -126,7 +126,7 @@
   C++ 典型答案: strategy->algorithmInterface(data);
   双向传递示例: visitor.visit(this); 或 imp->doPaint(m);
   ```
-- **【知识依赖】**：[16 种设计模式标准双语实现库](#52-16-种设计模式标准双语实现库)。
+- **【知识依赖】**：[19 种设计模式双语教学实现库](#52-c-与-java-完整教学实现库)。
 - **【易错与自检】**：
   - *陷阱*：Java 与 C++ 的解引用符号搞混（Java 均用点号 `.`；C++ 指针变量必须用箭头 `->`）；
   - *自检*：调用的方法名是否与类图中该接口定义的方法名拼写、大小写完全一致？
@@ -135,7 +135,7 @@
 
 ### 作答卡 DP-05：C++ 与 Java 双语核心填空语法对照速查卡
 
-- **【题型识别】**：面向试题五（Java）与试题六（C++）共用同一套模式语义时的语言级代码填空转换。
+- **【题型识别】**：面向C++ 与 Java 两种语言共用同一套模式语义时的语言级代码填空转换。
 - **【目标产出】**：严格遵循对应语言编译规范的代码片段。
 - **【双语核心语法对应大表】**：
 
@@ -189,7 +189,7 @@
 - **空 (2)：多态委托底层平台绘制像素矩阵**：
   - **取证**：在具体图像类 `GIFImage` 的 `parseFile(String fileName)` 方法中，已解析获得像素矩阵对象 `m`，后接注释“显示像素矩阵 m”。
   - **推理**：父类 `Image` 持有实现化角色引用 `protected Implementor imp`。根据桥接模式思想，具体格式类不直接调用平台 API，而是委托持有的桥接接口进行绘制。
-  - **答案**：`imp.doPaint(m)`（套用 [作答卡 DP-05](#作答卡-dp-05委托调用与多态分派代码填空)）。
+  - **答案**：`imp.doPaint(m)`（套用 [作答卡 DP-04](#作答卡-dp-04面向对象多态委托与方法调用代码填空动作卡)）。
 - **空 (3) 与空 (4)：根据客户端需求实例化具体图像与平台实现对象**：
   - **取证**：`main` 方法注释明确指定“在 Linux 操作系统上查看 demo.gif 图像文件”。
   - **推理**：
@@ -197,11 +197,11 @@
     - 操作系统为 Linux，对应具体实现子类实例化：空 (4) 填 `new LinuxImp()`。
   - **答案**：
     - (3) `new GIFImage()`
-    - (4) `new LinuxImp()`（套用 [作答卡 DP-04](#作答卡-dp-04构造链与实例创建代码填空)）。
+    - (4) `new LinuxImp()`（核对构造器签名与下文 6.3 桥接装配示例）。
 - **空 (5)：依赖注入装配桥接关系**：
   - **取证**：已创建图像对象 `image` 与平台实现对象 `imageImp`，随后执行 `image.parseFile("demo.gif");`。
   - **推理**：调用解析与绘制前，必须将具体操作系统实现注入到图像抽象对象中。基类 `Image` 提供了 Setter 注入方法 `public void setImp(Implementor imp)`。
-  - **答案**：`image.setImp(imageImp)`（套用 [作答卡 DP-05](#作答卡-dp-05委托调用与多态分派代码填空)）。
+  - **答案**：`image.setImp(imageImp)`（套用 [作答卡 DP-04](#作答卡-dp-04面向对象多态委托与方法调用代码填空动作卡)）。
 
 ---
 
@@ -217,195 +217,1816 @@
 
 ---
 
-## 5. 支撑知识详解（16 种设计模式标准双语实现库）
+## 5. 支撑知识详解（19 种设计模式双语教学实现库）
 
-### 5.1 16 种经典设计模式考场速查总表
-| 模式名称 | 分类 | 核心解题识别信号 | 典型考场场景 |
-|---|---|---|---|
-| **桥接模式 (Bridge)** | 结构型 | 抽象与实现分离，两个独立变化的维度 | 跨平台图像渲染（格式 × 操作系统） |
-| **组合模式 (Composite)** | 结构型 | 部分—整体树形层次，叶子与容器一致对待 | 多级菜单树、组织架构树、文件目录 |
-| **适配器模式 (Adapter)** | 结构型 | 已有类接口不兼容但需复用，包装转换 | 新系统对接老地址库/老支付接口 |
-| **装饰模式 (Decorator)** | 结构型 | 动态透明增加职责，用组合替代继承 | 发票加头加尾、数据流多层加密压缩 |
-| **外观模式 (Facade)** | 结构型 | 为复杂子系统提供统一的高层接待门面 | 医院前台接待（挂号/门诊/划价一站式） |
-| **享元模式 (Flyweight)** | 结构型 | 大量细粒度对象共享，区分内部与外部状态 | 网络围棋黑白棋子（共享颜色，坐标外传） |
-| **策略模式 (Strategy)** | 行为型 | 封装一系列可相互替换的算法族，独立变化 | 促销收银打折、不同图书借阅计费规则 |
-| **状态模式 (State)** | 行为型 | 行为随生命周期状态改变而改变，消除庞大分支 | 自动售货机流转、航空会员里程升级 |
-| **观察者模式 (Observer)** | 行为型 | 一对多依赖，一个对象状态变动自动广播通知 | 实验室环境监控（温度变化多块仪表更新） |
-| **中介者模式 (Mediator)** | 行为型 | 平级对象复杂网状依赖解耦为星状中介协同 | 多平台电商支付中介、飞机航行调度塔台 |
-| **备忘录模式 (Memento)** | 行为型 | 不破坏封装捕获内部状态，支持撤销/恢复 | 编辑器 Undo/Redo、历史快照恢复 |
-| **命令模式 (Command)** | 行为型 | 请求发送者与接收者解耦，支持队列/宏命令 | 股票交易委托代理、遥控器按钮宏命令 |
-| **模板方法 (Template Method)** | 行为型 | 父类定义算法骨架，子类重写可变步骤 | 应用程序框架（openDocument 固定 5 步） |
-| **访问者模式 (Visitor)** | 行为型 | 元素结构稳定，操作随需求不断新增（双分派） | 超市收银员访问不同商品结算（accept/visit） |
-| **生成器模式 (Builder)** | 创建型 | 复杂对象分步构建与表现分离，指挥者编排 | 餐厅套餐制作（指挥者服务员调度建造者） |
-| **原型模式 (Prototype)** | 创建型 | 通过拷贝/克隆原型创建新对象，避免昂贵初始化 | 大对象高效复制（Java Cloneable / C++ 拷贝构造） |
+### 5.1 19 种教学模式与判定依据
 
----
+| 模式 | 判定与填空线索 |
+|---|---|
+| 桥接（Bridge） | 两个独立变化维度；抽象持有实现接口，先装配再委托。 |
+| 组合（Composite） | 叶子与容器共享接口；容器保存抽象构件并递归分派。 |
+| 策略（Strategy） | 环境类保存可替换策略；构造/Setter 注入，业务入口委托。 |
+| 状态（State） | 行为取决于当前状态；状态对象通过 Context 改变后续行为。 |
+| 观察者（Observer） | 目标维护观察者集合，状态改变后通知全部订阅者。 |
+| 适配器（Adapter） | 目标接口与旧接口不兼容；适配器持有旧对象并转换调用。 |
+| 装饰（Decorator） | 装饰器也实现构件接口，委托原构件后增加职责。 |
+| 命令（Command） | 调用者持有命令接口；具体命令保存接收者并调用其业务。 |
+| 访问者（Visitor） | accept 接收访问者，内部 visit(this) 完成双分派。 |
+| 模板方法（Template） | 父类固定算法流程，抽象步骤由子类实现。 |
+| 抽象工厂（Factory） | 同一工厂创建兼容的产品族，客户端依赖抽象产品。 |
+| 生成器（Builder） | 指挥者控制步骤，建造者保存并返回产品。 |
+| 原型（Prototype） | 通过多态 clone 复制对象；验证副本与原型不共享可变状态。 |
+| 备忘录（Memento） | 发起人保存/恢复状态，管理者保存快照而不修改其内容。 |
+| 中介者（Mediator） | 同事只知道中介者，由中介者决定通知对象。 |
+| 外观（Facade） | 门面串联子系统调用；客户端只认识统一入口。 |
+| 享元（Flyweight） | 工厂按内部状态复用对象，外部状态在调用时传入。 |
+| 责任链（Chain） | 请求沿后继传递；当前处理者不能处理才交给下一位。 |
+| 迭代器（Iterator） | 聚合对象提供迭代入口；先判断终点再读取/推进。 |
 
-### 5.2 16 种设计模式标准双语实现库
+### 5.2 C++ 与 Java 完整教学实现库
 
-#### 1. 中介者模式 (Mediator)
-- **依赖方向**：同事 → 中介者 → 相关同事，同事之间互不相识。
-- **Java 核心实现**：
-  ```java
-  interface Mediator { void send(String msg, Colleague c); }
-  class ConcreteMediator implements Mediator {
-      private ConcreteColleague1 c1;
-      private ConcreteColleague2 c2;
-      public void send(String msg, Colleague c) {
-          if (c == c1) c2.notify(msg); else c1.notify(msg);
-      }
-  }
-  ```
+以下 19 组是原创教学模型，用于训练代码补全与运行追踪，不冒称新增历年真题。每个代码块是独立程序，不能把多个同名教学类型直接拼接。Java 使用各段指定文件名；C++ 使用 C++17。可用 `javac 文件名.java`、`java 类名` 或 `c++ -std=c++17 文件名.cpp -o demo` 编译运行。
 
-#### 2. 模板方法模式 (Template Method)
-- **核心骨架（Application / Document 模型）**：
-  ```cpp
-  void Application::openDocument(const string& name) {
-      if (!canOpenDocument(name)) return;
-      Document* doc = doCreateDocument(); // 工厂方法延迟到子类
-      doc->open(name);
-      doc->read(name);
-      addDocument(doc);
-  }
-  ```
+C++ 示例中引用与裸指针用于非拥有关系，依赖对象均比使用者活得久；拥有对象的工厂/克隆使用智能指针。不能由“有指针”推断负责 delete，也不能把点号与箭头机械互换。经基类指针销毁派生对象时，基类需有可访问的虚析构；Java 回收普通内存不代表外部资源立即关闭。
 
-#### 3. 访问者模式 (Visitor)
-- **双分派机制**：`item.accept(visitor)` ──内部调用──▶ `visitor.visit(this);`。
-- **Java 核心实现**：
-  ```java
-  interface Item { void accept(Visitor v); }
-  class Book implements Item {
-      public void accept(Visitor v) { v.visit(this); }
-  }
-  class Cashier implements Visitor {
-      public void visit(Book b) { /* 结算图书 */ }
-  }
-  ```
+每组必须走通“抽象接口 → 成员类型 → 构造/装配 → 委托/递归调用 → 客户端 → 结果”。填空答案只填题面缺少的部分：已有 public、分号或声明前缀时不要重复。
 
-#### 4. 抽象工厂模式 (Abstract Factory)
-- **创建产品族**：
-  ```cpp
-  class IFactory {
-  public:
-      virtual IUser* CreateUser() = 0;
-      virtual IDepartment* CreateDepartment() = 0;
-  };
-  ```
+#### 1. 桥接（Bridge）
 
-#### 5. 观察者模式 (Observer)
-- **广播通知机制**：
-  ```java
-  class EnvironmentData implements Subject {
-      private List<Observer> observers = new ArrayList<>();
-      public void notifyObservers() {
-          for (Observer o : observers) { o.update(temperature, humidity); }
-      }
-  }
-  ```
+两个独立变化维度；抽象持有实现接口，先装配再委托。
 
-#### 6. 备忘录模式 (Memento)
-- **三角色协作**：
-  ```java
-  // Originator
-  public Memento saveState() { return new Memento(state); }
-  public void restoreState(Memento m) { this.state = m.getState(); }
-  // Caretaker 管理历史列表
-  caretaker.add(originator.saveState());
-  originator.restoreState(caretaker.get(index));
-  ```
+Java 完整教学程序（保存为 BridgeDemo.java）：
 
-#### 7. 命令模式 (Command)
-- **参数化与解耦**：
-  ```java
-  class ConcreteCommand implements Command {
-      private Receiver receiver;
-      public ConcreteCommand(Receiver r) { this.receiver = r; }
-      public void execute() { receiver.action(); }
-  }
-  ```
+```java
+import java.util.*;
+public class BridgeDemo {
+    interface Painter {
+        String paint(String shape);
+    }
+    static class Screen implements Painter {
+        public String paint(String s) {
+            return "screen:"+s;
+        }
+    }
+    static abstract class Shape {
+        protected final Painter painter;
+        Shape(Painter p) {
+            painter=p;
+        }
+        abstract String draw();
+    }
+    static class Circle extends Shape {
+        Circle(Painter p) {
+            super(p);
+        }
+        String draw() {
+            return painter.paint("circle");
+        }
+    }
+    static String demo() {
+        Shape s=new Circle(new Screen());
+        return s.draw();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("screen:circle"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
 
-#### 8. 策略模式 (Strategy)
-- **算法族可替换**：
-  ```java
-  class Duck {
-      protected FlyBehavior flyBehavior;
-      public void performFly() { flyBehavior.fly(); } // 委托调用
-  }
-  ```
+C++17 完整教学程序：
 
-#### 9. 状态模式 (State)
-- **状态驱动上下文流转**：
-  ```java
-  class StartState implements State {
-      public void doAction(Context context) {
-          context.setState(this); // 驱动环境状态切换
-      }
-  }
-  ```
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Bridge {
+    struct Painter {
+        virtual string paint(const string&)=0;
+        virtual ~Painter()=default;
+    };
+    struct Screen:Painter {
+        string paint(const string& s) override {
+            return "screen:"+s;
+        }
+    };
+    struct Shape {
+        Painter& painter;
+        explicit Shape(Painter& p):painter(p) {
+        }
+        virtual string draw()=0;
+        virtual ~Shape()=default;
+    };
+    struct Circle:Shape {
+        explicit Circle(Painter& p):Shape(p) {
+        }
+        string draw() override {
+            return painter.paint("circle");
+        }
+    };
+    string demo() {
+        Screen p;
+        Circle c(p);
+        Shape& s=c;
+        return s.draw();
+    }
+}
+int main() {
+    string actual=Bridge::demo();
+    assert(actual=="screen:circle");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
 
-#### 10. 享元模式 (Flyweight)
-- **内外状态分离**：颜色为内部共享状态（存放在享元池），坐标 `(x, y)` 为外部状态由调用端传入。
+运行结果：`screen:circle`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
 
-#### 11. 适配器模式 (Adapter)
-- **接口转换**：
-  ```cpp
-  class Adapter : public Target {
-  private:
-      Adaptee* adaptee;
-  public:
-      virtual void request() { adaptee->specificRequest(); }
-  };
-  ```
+#### 2. 组合（Composite）
 
-#### 12. 生成器模式 (Builder)
-- **指挥者调度建造者**：
-  ```java
-  public void constructMeal(MealBuilder builder) {
-      builder.buildBurger();
-      builder.buildDrink();
-  }
-  ```
+叶子与容器共享接口；容器保存抽象构件并递归分派。
 
-#### 13. 装饰模式 (Decorator)
-- **组合包装增强**：
-  ```cpp
-  void Decorator::print() {
-      component->print(); // 基础调用
-      printFooter();      // 装饰增强
-  }
-  ```
+Java 完整教学程序（保存为 CompositeDemo.java）：
 
-#### 14. 组合模式 (Composite)
-- **树形递归多态调用**：
-  ```java
-  public void print() {
-      for (Component c : components) { c.print(); }
-  }
-  ```
+```java
+import java.util.*;
+public class CompositeDemo {
+    interface Node {
+        String draw();
+    }
+    static class Leaf implements Node {
+        public String draw() {
+            return "L";
+        }
+    }
+    static class Group implements Node {
+        final List<Node> children=new ArrayList<>();
+        void add(Node n) {
+            children.add(n);
+        }
+        void remove(Node n) {
+            children.remove(n);
+        }
+        public String draw() {
+            StringBuilder b=new StringBuilder();
+            for(Node n:children)b.append(n.draw());
+            return b.toString();
+        }
+    }
+    static String demo() {
+        Group root=new Group(),sub=new Group();
+        Leaf leaf=new Leaf();
+        sub.add(leaf);
+        root.add(sub);
+        root.add(new Leaf());
+        if(!root.draw().equals("LL"))throw new AssertionError();
+        sub.remove(leaf);
+        return root.draw();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("L"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
 
-#### 15. 外观模式 (Facade)
-- **子系统统一门面**：
-  ```java
-  public void dispose() {
-      registration.handle();
-      outpatient.handle();
-      pharmacy.handle();
-  }
-  ```
+C++17 完整教学程序：
 
-#### 16. 桥接模式 (Bridge)
-- **双维度聚合解耦**：
-  ```java
-  abstract class Image {
-      protected ImageImp imp; // 组合实现接口
-      public abstract void parseFile(String name);
-  }
-  ```
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Composite {
+    struct Node {
+        virtual string draw()=0;
+        virtual ~Node()=default;
+    };
+    struct Leaf:Node {
+        string draw() override {
+            return "L";
+        }
+    };
+    struct Group:Node {
+        vector<Node*> children;
+        void add(Node& n) {
+            children.push_back(&n);
+        }
+        void remove(Node& n) {
+            children.erase(std::remove(children.begin(),children.end(),&n),children.end());
+        }
+        string draw() override {
+            string s;
+            for(Node* n:children)s+=n->draw();
+            return s;
+        }
+    };
+    string demo() {
+        Group root,sub;
+        Leaf a,b;
+        sub.add(a);
+        root.add(sub);
+        root.add(b);
+        assert(root.draw()=="LL");
+        sub.remove(a);
+        return root.draw();
+    }
+}
+int main() {
+    string actual=Composite::demo();
+    assert(actual=="L");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
 
-#### 17. 原型模式 (Prototype)
-- **克隆机制**：Java 实现 `Cloneable` 接口并调用 `super.clone()`；C++ 提供纯虚 `virtual Prototype* Clone() = 0;` 并调用拷贝构造函数 `return new ConcretePrototype(*this);`。
+运行结果：`L`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
 
----
+#### 3. 策略（Strategy）
+
+环境类保存可替换策略；构造/Setter 注入，业务入口委托。
+
+Java 完整教学程序（保存为 StrategyDemo.java）：
+
+```java
+import java.util.*;
+public class StrategyDemo {
+    interface Pay {
+        int cost(int amount);
+    }
+    static class Half implements Pay {
+        public int cost(int x) {
+            return x/2;
+        }
+    }
+    static class Full implements Pay {
+        public int cost(int x) {
+            return x;
+        }
+    }
+    static class Order {
+        private Pay pay;
+        Order(Pay p) {
+            pay=p;
+        }
+        void setPay(Pay p) {
+            pay=p;
+        }
+        int checkout(int x) {
+            return pay.cost(x);
+        }
+    }
+    static String demo() {
+        Order o=new Order(new Half());
+        if(o.checkout(10)!=5)throw new AssertionError();
+        o.setPay(new Full());
+        return ""+o.checkout(10);
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("10"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Strategy {
+    struct Pay {
+        virtual int cost(int)=0;
+        virtual ~Pay()=default;
+    };
+    struct Half:Pay {
+        int cost(int x) override {
+            return x/2;
+        }
+    };
+    struct Full:Pay {
+        int cost(int x) override {
+            return x;
+        }
+    };
+    struct Order {
+        Pay* pay;
+        explicit Order(Pay& p):pay(&p) {
+        }
+        void setPay(Pay& p) {
+            pay=&p;
+        }
+        int checkout(int x) {
+            return pay->cost(x);
+        }
+    };
+    string demo() {
+        Half h;
+        Full f;
+        Order o(h);
+        assert(o.checkout(10)==5);
+        o.setPay(f);
+        return to_string(o.checkout(10));
+    }
+}
+int main() {
+    string actual=Strategy::demo();
+    assert(actual=="10");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`10`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 4. 状态（State）
+
+行为取决于当前状态；状态对象通过 Context 改变后续行为。
+
+Java 完整教学程序（保存为 StateDemo.java）：
+
+```java
+import java.util.*;
+public class StateDemo {
+    interface State {
+        String act(Context c);
+    }
+    static class Ready implements State {
+        public String act(Context c) {
+            c.setState(new Done());
+            return "ready";
+        }
+    }
+    static class Done implements State {
+        public String act(Context c) {
+            return "done";
+        }
+    }
+    static class Context {
+        private State state=new Ready();
+        void setState(State s) {
+            state=s;
+        }
+        String act() {
+            return state.act(this);
+        }
+    }
+    static String demo() {
+        Context c=new Context();
+        return c.act()+","+c.act();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("ready,done"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace State {
+    struct Context;
+    struct State {
+        virtual string act(Context&)=0;
+        virtual ~State()=default;
+    };
+    struct Done:State {
+        string act(Context&) override {
+            return "done";
+        }
+    };
+    struct Ready:State {
+        State& next;
+        explicit Ready(State& n):next(n) {
+        }
+        string act(Context&) override;
+    };
+    struct Context {
+        State* state;
+        explicit Context(State& s):state(&s) {
+        }
+        void setState(State& s) {
+            state=&s;
+        }
+        string act() {
+            return state->act(*this);
+        }
+    };
+    string Ready::act(Context& c) {
+        c.setState(next);
+        return "ready";
+    }
+    string demo() {
+        Done d;
+        Ready r(d);
+        Context c(r);
+        string first=c.act();
+        return first+","+c.act();
+    }
+}
+int main() {
+    string actual=State::demo();
+    assert(actual=="ready,done");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`ready,done`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 5. 观察者（Observer）
+
+目标维护观察者集合，状态改变后通知全部订阅者。
+
+Java 完整教学程序（保存为 ObserverDemo.java）：
+
+```java
+import java.util.*;
+public class ObserverDemo {
+    interface Observer {
+        void update(int n);
+    }
+    static class View implements Observer {
+        int value;
+        public void update(int n) {
+            value=n;
+        }
+    }
+    static class Subject {
+        final List<Observer> observers=new ArrayList<>();
+        void attach(Observer o) {
+            observers.add(o);
+        }
+        void detach(Observer o) {
+            observers.remove(o);
+        }
+        void change(int n) {
+            for(Observer o:observers)o.update(n);
+        }
+    }
+    static String demo() {
+        Subject s=new Subject();
+        View a=new View(),b=new View();
+        s.attach(a);
+        s.attach(b);
+        s.change(3);
+        s.detach(b);
+        s.change(4);
+        return a.value+","+b.value;
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("4,3"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Observer {
+    struct Observer {
+        virtual void update(int)=0;
+        virtual ~Observer()=default;
+    };
+    struct View:Observer {
+        int value=0;
+        void update(int n) override {
+            value=n;
+        }
+    };
+    struct Subject {
+        vector<Observer*> observers;
+        void attach(Observer& o) {
+            observers.push_back(&o);
+        }
+        void detach(Observer& o) {
+            observers.erase(std::remove(observers.begin(),observers.end(),&o),observers.end());
+        }
+        void change(int n) {
+            for(Observer* o:observers)o->update(n);
+        }
+    };
+    string demo() {
+        Subject s;
+        View a,b;
+        s.attach(a);
+        s.attach(b);
+        s.change(3);
+        s.detach(b);
+        s.change(4);
+        return to_string(a.value)+","+to_string(b.value);
+    }
+}
+int main() {
+    string actual=Observer::demo();
+    assert(actual=="4,3");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`4,3`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 6. 适配器（Adapter）
+
+目标接口与旧接口不兼容；适配器持有旧对象并转换调用。
+
+Java 完整教学程序（保存为 AdapterDemo.java）：
+
+```java
+import java.util.*;
+public class AdapterDemo {
+    interface Target {
+        String request();
+    }
+    static class Legacy {
+        String oldRequest() {
+            return "legacy";
+        }
+    }
+    static class Adapter implements Target {
+        private final Legacy legacy;
+        Adapter(Legacy l) {
+            legacy=l;
+        }
+        public String request() {
+            return legacy.oldRequest();
+        }
+    }
+    static String demo() {
+        Target t=new Adapter(new Legacy());
+        return t.request();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("legacy"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Adapter {
+    struct Target {
+        virtual string request()=0;
+        virtual ~Target()=default;
+    };
+    struct Legacy {
+        string oldRequest() {
+            return "legacy";
+        }
+    };
+    struct Adapter:Target {
+        Legacy& legacy;
+        explicit Adapter(Legacy& l):legacy(l) {
+        }
+        string request() override {
+            return legacy.oldRequest();
+        }
+    };
+    string demo() {
+        Legacy l;
+        Adapter a(l);
+        Target& t=a;
+        return t.request();
+    }
+}
+int main() {
+    string actual=Adapter::demo();
+    assert(actual=="legacy");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`legacy`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 7. 装饰（Decorator）
+
+装饰器也实现构件接口，委托原构件后增加职责。
+
+Java 完整教学程序（保存为 DecoratorDemo.java）：
+
+```java
+import java.util.*;
+public class DecoratorDemo {
+    interface Component {
+        String text();
+    }
+    static class Plain implements Component {
+        public String text() {
+            return "body";
+        }
+    }
+    static class Border implements Component {
+        private final Component inner;
+        Border(Component c) {
+            inner=c;
+        }
+        public String text() {
+            return "["+inner.text()+"]";
+        }
+    }
+    static String demo() {
+        Component c=new Border(new Border(new Plain()));
+        return c.text();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("[[body]]"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Decorator {
+    struct Component {
+        virtual string text()=0;
+        virtual ~Component()=default;
+    };
+    struct Plain:Component {
+        string text() override {
+            return "body";
+        }
+    };
+    struct Border:Component {
+        Component& inner;
+        explicit Border(Component& c):inner(c) {
+        }
+        string text() override {
+            return "["+inner.text()+"]";
+        }
+    };
+    string demo() {
+        Plain p;
+        Border a(p);
+        Border b(static_cast<Component&>(a));
+        Component& c=b;
+        return c.text();
+    }
+}
+int main() {
+    string actual=Decorator::demo();
+    assert(actual=="[[body]]");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`[[body]]`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 8. 命令（Command）
+
+调用者持有命令接口；具体命令保存接收者并调用其业务。
+
+Java 完整教学程序（保存为 CommandDemo.java）：
+
+```java
+import java.util.*;
+public class CommandDemo {
+    static class Receiver {
+        String open() {
+            return "open";
+        }
+    }
+    interface Command {
+        String execute();
+    }
+    static class Open implements Command {
+        final Receiver receiver;
+        Open(Receiver r) {
+            receiver=r;
+        }
+        public String execute() {
+            return receiver.open();
+        }
+    }
+    static class Button {
+        final Command command;
+        Button(Command c) {
+            command=c;
+        }
+        String click() {
+            return command.execute();
+        }
+    }
+    static String demo() {
+        return new Button(new Open(new Receiver())).click();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("open"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Command {
+    struct Receiver {
+        string open() {
+            return "open";
+        }
+    };
+    struct Command {
+        virtual string execute()=0;
+        virtual ~Command()=default;
+    };
+    struct Open:Command {
+        Receiver& receiver;
+        explicit Open(Receiver& r):receiver(r) {
+        }
+        string execute() override {
+            return receiver.open();
+        }
+    };
+    struct Button {
+        Command& command;
+        explicit Button(Command& c):command(c) {
+        }
+        string click() {
+            return command.execute();
+        }
+    };
+    string demo() {
+        Receiver r;
+        Open c(r);
+        Button b(c);
+        return b.click();
+    }
+}
+int main() {
+    string actual=Command::demo();
+    assert(actual=="open");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`open`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 9. 访问者（Visitor）
+
+accept 接收访问者，内部 visit(this) 完成双分派。
+
+Java 完整教学程序（保存为 VisitorDemo.java）：
+
+```java
+import java.util.*;
+public class VisitorDemo {
+    interface Visitor {
+        String visit(Book b);
+        String visit(Food f);
+    }
+    interface Item {
+        String accept(Visitor v);
+    }
+    static class Book implements Item {
+        public String accept(Visitor v) {
+            return v.visit(this);
+        }
+    }
+    static class Food implements Item {
+        public String accept(Visitor v) {
+            return v.visit(this);
+        }
+    }
+    static class Cashier implements Visitor {
+        public String visit(Book b) {
+            return "B";
+        }
+        public String visit(Food f) {
+            return "F";
+        }
+    }
+    static String demo() {
+        Visitor v=new Cashier();
+        Item a=new Book(),b=new Food();
+        return a.accept(v)+b.accept(v);
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("BF"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Visitor {
+    struct Book;
+    struct Food;
+    struct Visitor {
+        virtual string visit(Book&)=0;
+        virtual string visit(Food&)=0;
+        virtual ~Visitor()=default;
+    };
+    struct Item {
+        virtual string accept(Visitor&)=0;
+        virtual ~Item()=default;
+    };
+    struct Book:Item {
+        string accept(Visitor& v) override {
+            return v.visit(*this);
+        }
+    };
+    struct Food:Item {
+        string accept(Visitor& v) override {
+            return v.visit(*this);
+        }
+    };
+    struct Cashier:Visitor {
+        string visit(Book&) override {
+            return "B";
+        }
+        string visit(Food&) override {
+            return "F";
+        }
+    };
+    string demo() {
+        Cashier v;
+        Book a;
+        Food b;
+        return a.accept(v)+b.accept(v);
+    }
+}
+int main() {
+    string actual=Visitor::demo();
+    assert(actual=="BF");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`BF`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 10. 模板方法（Template）
+
+父类固定算法流程，抽象步骤由子类实现。
+
+Java 完整教学程序（保存为 TemplateDemo.java）：
+
+```java
+import java.util.*;
+public class TemplateDemo {
+    static abstract class Task {
+        final String run() {
+            return "open,"+process()+",close";
+        }
+        abstract String process();
+    }
+    static class ImportTask extends Task {
+        String process() {
+            return "read";
+        }
+    }
+    static String demo() {
+        Task t=new ImportTask();
+        return t.run();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("open,read,close"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Template {
+    struct Task {
+        string run() {
+            return "open,"+process()+",close";
+        }
+        virtual string process()=0;
+        virtual ~Task()=default;
+    };
+    struct ImportTask:Task {
+        string process() override {
+            return "read";
+        }
+    };
+    string demo() {
+        ImportTask t;
+        return t.run();
+    }
+}
+int main() {
+    string actual=Template::demo();
+    assert(actual=="open,read,close");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`open,read,close`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 11. 抽象工厂（Factory）
+
+同一工厂创建兼容的产品族，客户端依赖抽象产品。
+
+Java 完整教学程序（保存为 FactoryDemo.java）：
+
+```java
+import java.util.*;
+public class FactoryDemo {
+    interface Button {
+        String show();
+    }
+    interface Menu {
+        String show();
+    }
+    static class DarkButton implements Button {
+        public String show() {
+            return "dark-button";
+        }
+    }
+    static class DarkMenu implements Menu {
+        public String show() {
+            return "dark-menu";
+        }
+    }
+    interface Factory {
+        Button button();
+        Menu menu();
+    }
+    static class DarkFactory implements Factory {
+        public Button button() {
+            return new DarkButton();
+        }
+        public Menu menu() {
+            return new DarkMenu();
+        }
+    }
+    static String demo() {
+        Factory f=new DarkFactory();
+        return f.button().show()+","+f.menu().show();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("dark-button,dark-menu"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Factory {
+    struct Button {
+        virtual string show()=0;
+        virtual ~Button()=default;
+    };
+    struct Menu {
+        virtual string show()=0;
+        virtual ~Menu()=default;
+    };
+    struct DarkButton:Button {
+        string show() override {
+            return "dark-button";
+        }
+    };
+    struct DarkMenu:Menu {
+        string show() override {
+            return "dark-menu";
+        }
+    };
+    struct Factory {
+        virtual unique_ptr<Button> button()=0;
+        virtual unique_ptr<Menu> menu()=0;
+        virtual ~Factory()=default;
+    };
+    struct DarkFactory:Factory {
+        unique_ptr<Button> button() override {
+            return make_unique<DarkButton>();
+        }
+        unique_ptr<Menu> menu() override {
+            return make_unique<DarkMenu>();
+        }
+    };
+    string demo() {
+        DarkFactory f;
+        return f.button()->show()+","+f.menu()->show();
+    }
+}
+int main() {
+    string actual=Factory::demo();
+    assert(actual=="dark-button,dark-menu");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`dark-button,dark-menu`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 12. 生成器（Builder）
+
+指挥者控制步骤，建造者保存并返回产品。
+
+Java 完整教学程序（保存为 BuilderDemo.java）：
+
+```java
+import java.util.*;
+public class BuilderDemo {
+    static class Product {
+        String text="";
+    }
+    interface Builder {
+        void first();
+        void second();
+        Product result();
+    }
+    static class MealBuilder implements Builder {
+        final Product p=new Product();
+        public void first() {
+            p.text+="rice";
+        }
+        public void second() {
+            p.text+=",tea";
+        }
+        public Product result() {
+            return p;
+        }
+    }
+    static class Director {
+        Product construct(Builder b) {
+            b.first();
+            b.second();
+            return b.result();
+        }
+    }
+    static String demo() {
+        return new Director().construct(new MealBuilder()).text;
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("rice,tea"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Builder {
+    struct Product {
+        string text;
+    };
+    struct Builder {
+        virtual void first()=0;
+        virtual void second()=0;
+        virtual Product result()=0;
+        virtual ~Builder()=default;
+    };
+    struct MealBuilder:Builder {
+        Product p;
+        void first() override {
+            p.text+="rice";
+        }
+        void second() override {
+            p.text+=",tea";
+        }
+        Product result() override {
+            return p;
+        }
+    };
+    struct Director {
+        Product construct(Builder& b) {
+            b.first();
+            b.second();
+            return b.result();
+        }
+    };
+    string demo() {
+        MealBuilder b;
+        Director d;
+        return d.construct(b).text;
+    }
+}
+int main() {
+    string actual=Builder::demo();
+    assert(actual=="rice,tea");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`rice,tea`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 13. 原型（Prototype）
+
+通过多态 clone 复制对象；验证副本与原型不共享可变状态。
+
+Java 完整教学程序（保存为 PrototypeDemo.java）：
+
+```java
+import java.util.*;
+public class PrototypeDemo {
+    interface Prototype {
+        Prototype copy();
+    }
+    static class Record implements Prototype {
+        final List<String> tags;
+        Record(List<String> t) {
+            tags=new ArrayList<>(t);
+        }
+        public Record copy() {
+            return new Record(tags);
+        }
+    }
+    static String demo() {
+        Record a=new Record(Arrays.asList("A"));
+        Record b=a.copy();
+        b.tags.add("B");
+        return a.tags.size()+","+b.tags.size();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("1,2"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Prototype {
+    struct Prototype {
+        virtual unique_ptr<Prototype> clone() const=0;
+        virtual ~Prototype()=default;
+    };
+    struct Record:Prototype {
+        vector<string> tags;
+        explicit Record(vector<string> t):tags(std::move(t)) {
+        }
+        unique_ptr<Prototype> clone() const override {
+            return make_unique<Record>(*this);
+        }
+    };
+    string demo() {
+        Record a( {
+            "A"
+        }
+        );
+        auto base=a.clone();
+        auto& b=dynamic_cast<Record&>(*base);
+        b.tags.push_back("B");
+        return to_string(a.tags.size())+","+to_string(b.tags.size());
+    }
+}
+int main() {
+    string actual=Prototype::demo();
+    assert(actual=="1,2");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`1,2`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 14. 备忘录（Memento）
+
+发起人保存/恢复状态，管理者保存快照而不修改其内容。
+
+Java 完整教学程序（保存为 MementoDemo.java）：
+
+```java
+import java.util.*;
+public class MementoDemo {
+    static class Snapshot {
+        private final String value;
+        Snapshot(String v) {
+            value=v;
+        }
+    }
+    static class Editor {
+        String text="";
+        Snapshot save() {
+            return new Snapshot(text);
+        }
+        void restore(Snapshot s) {
+            text=s.value;
+        }
+    }
+    static String demo() {
+        Editor e=new Editor();
+        e.text="draft";
+        Snapshot s=e.save();
+        e.text="changed";
+        e.restore(s);
+        return e.text;
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("draft"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Memento {
+    class Editor;
+    class Snapshot {
+        friend class Editor;
+        string value;
+        explicit Snapshot(string v):value(std::move(v)) {
+        }
+    };
+    class Editor {
+        public:string text;
+        Snapshot save() const {
+            return Snapshot(text);
+        }
+        void restore(const Snapshot& s) {
+            text=s.value;
+        }
+    };
+    string demo() {
+        Editor e;
+        e.text="draft";
+        auto s=e.save();
+        e.text="changed";
+        e.restore(s);
+        return e.text;
+    }
+}
+int main() {
+    string actual=Memento::demo();
+    assert(actual=="draft");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`draft`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 15. 中介者（Mediator）
+
+同事只知道中介者，由中介者决定通知对象。
+
+Java 完整教学程序（保存为 MediatorDemo.java）：
+
+```java
+import java.util.*;
+public class MediatorDemo {
+    interface Mediator {
+        void send(String text,Peer from);
+    }
+    static class Peer {
+        final Mediator mediator;
+        String received="";
+        Peer(Mediator m) {
+            mediator=m;
+        }
+        void send(String s) {
+            mediator.send(s,this);
+        }
+        void receive(String s) {
+            received=s;
+        }
+    }
+    static class Hub implements Mediator {
+        Peer a,b;
+        public void send(String s,Peer from) {
+            if(from==a)b.receive(s);
+            else a.receive(s);
+        }
+    }
+    static String demo() {
+        Hub h=new Hub();
+        h.a=new Peer(h);
+        h.b=new Peer(h);
+        h.a.send("hello");
+        return h.b.received;
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("hello"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Mediator {
+    struct Peer;
+    struct Mediator {
+        virtual void send(const string&,Peer*)=0;
+        virtual ~Mediator()=default;
+    };
+    struct Peer {
+        Mediator& mediator;
+        string received;
+        explicit Peer(Mediator& m):mediator(m) {
+        }
+        void send(const string& s) {
+            mediator.send(s,this);
+        }
+        void receive(const string& s) {
+            received=s;
+        }
+    };
+    struct Hub:Mediator {
+        Peer* a=nullptr;
+        Peer* b=nullptr;
+        void send(const string& s,Peer* from) override {
+            assert(a&&b);
+            (from==a?b:a)->receive(s);
+        }
+    };
+    string demo() {
+        Hub h;
+        Peer a(h),b(h);
+        h.a=&a;
+        h.b=&b;
+        a.send("hello");
+        return b.received;
+    }
+}
+int main() {
+    string actual=Mediator::demo();
+    assert(actual=="hello");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`hello`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 16. 外观（Facade）
+
+门面串联子系统调用；客户端只认识统一入口。
+
+Java 完整教学程序（保存为 FacadeDemo.java）：
+
+```java
+import java.util.*;
+public class FacadeDemo {
+    static class Stock {
+        String reserve() {
+            return "stock";
+        }
+    }
+    static class Shipping {
+        String send() {
+            return "ship";
+        }
+    }
+    static class Shop {
+        final Stock stock=new Stock();
+        final Shipping shipping=new Shipping();
+        String buy() {
+            return stock.reserve()+","+shipping.send();
+        }
+    }
+    static String demo() {
+        return new Shop().buy();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("stock,ship"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Facade {
+    struct Stock {
+        string reserve() {
+            return "stock";
+        }
+    };
+    struct Shipping {
+        string send() {
+            return "ship";
+        }
+    };
+    struct Shop {
+        Stock stock;
+        Shipping shipping;
+        string buy() {
+            return stock.reserve()+","+shipping.send();
+        }
+    };
+    string demo() {
+        Shop s;
+        return s.buy();
+    }
+}
+int main() {
+    string actual=Facade::demo();
+    assert(actual=="stock,ship");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`stock,ship`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 17. 享元（Flyweight）
+
+工厂按内部状态复用对象，外部状态在调用时传入。
+
+Java 完整教学程序（保存为 FlyweightDemo.java）：
+
+```java
+import java.util.*;
+public class FlyweightDemo {
+    static class Glyph {
+        final String type;
+        Glyph(String t) {
+            type=t;
+        }
+        String draw(int x) {
+            return type+"@"+x;
+        }
+    }
+    static class Factory {
+        final Map<String,Glyph> pool=new HashMap<>();
+        Glyph get(String t) {
+            return pool.computeIfAbsent(t,Glyph::new);
+        }
+    }
+    static String demo() {
+        Factory f=new Factory();
+        Glyph a=f.get("A"),b=f.get("A");
+        if(a!=b)throw new AssertionError();
+        return b.draw(3);
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("A@3"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Flyweight {
+    struct Glyph {
+        string type;
+        explicit Glyph(string t):type(std::move(t)) {
+        }
+        string draw(int x) const {
+            return type+"@"+to_string(x);
+        }
+    };
+    struct Factory {
+        map<string,shared_ptr<Glyph>> pool;
+        shared_ptr<Glyph> get(const string& t) {
+            auto& p=pool[t];
+            if(!p)p=make_shared<Glyph>(t);
+            return p;
+        }
+    };
+    string demo() {
+        Factory f;
+        auto a=f.get("A"),b=f.get("A");
+        assert(a==b);
+        return b->draw(3);
+    }
+}
+int main() {
+    string actual=Flyweight::demo();
+    assert(actual=="A@3");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`A@3`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 18. 责任链（Chain）
+
+请求沿后继传递；当前处理者不能处理才交给下一位。
+
+Java 完整教学程序（保存为 ChainDemo.java）：
+
+```java
+import java.util.*;
+public class ChainDemo {
+    static abstract class Handler {
+        Handler next;
+        Handler link(Handler n) {
+            next=n;
+            return n;
+        }
+        abstract String handle(int level);
+    }
+    static class Worker extends Handler {
+        final int limit;
+        Worker(int n) {
+            limit=n;
+        }
+        String handle(int n) {
+            if(n<=limit)return "L"+limit;
+            return next==null?"unhandled":next.handle(n);
+        }
+    }
+    static String demo() {
+        Handler a=new Worker(1);
+        a.link(new Worker(3));
+        return a.handle(2)+","+a.handle(5);
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("L3,unhandled"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Chain {
+    struct Handler {
+        Handler* next=nullptr;
+        Handler& link(Handler& n) {
+            next=&n;
+            return n;
+        }
+        virtual string handle(int)=0;
+        virtual ~Handler()=default;
+    };
+    struct Worker:Handler {
+        int limit;
+        explicit Worker(int n):limit(n) {
+        }
+        string handle(int n) override {
+            if(n<=limit)return "L"+to_string(limit);
+            return next?next->handle(n):"unhandled";
+        }
+    };
+    string demo() {
+        Worker a(1),b(3);
+        a.link(b);
+        return a.handle(2)+","+a.handle(5);
+    }
+}
+int main() {
+    string actual=Chain::demo();
+    assert(actual=="L3,unhandled");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`L3,unhandled`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
+
+#### 19. 迭代器（Iterator）
+
+聚合对象提供迭代入口；先判断终点再读取/推进。
+
+Java 完整教学程序（保存为 IteratorDemo.java）：
+
+```java
+import java.util.*;
+public class IteratorDemo {
+    static class Catalog implements Iterable<String> {
+        final List<String> items=Arrays.asList("A","B");
+        public Iterator<String> iterator() {
+            return items.iterator();
+        }
+    }
+    static String demo() {
+        Iterator<String> it=new Catalog().iterator();
+        StringBuilder out=new StringBuilder();
+        while(it.hasNext())out.append(it.next());
+        if(it.hasNext())throw new AssertionError();
+        return out.toString();
+    }
+    public static void main(String[] args) {
+        String actual=demo();
+        if(!actual.equals("AB"))throw new AssertionError(actual);
+        System.out.println(actual);
+    }
+}
+```
+
+C++17 完整教学程序：
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+namespace Iterator {
+    struct Catalog {
+        vector<string> items {
+            "A","B"
+        };
+        auto begin() const {
+            return items.begin();
+        }
+        auto end() const {
+            return items.end();
+        }
+    };
+    string demo() {
+        Catalog c;
+        string s;
+        for(auto it=c.begin();it!=c.end();++it)s+=*it;
+        return s;
+    }
+}
+int main() {
+    string actual=Iterator::demo();
+    assert(actual=="AB");
+    cout<<actual<<"\n";
+    return 0;
+}
+```
+
+运行结果：`AB`。先遮住成员声明、构造/装配和关键委托语句，按上述职责自行补全，再核对接口签名与实际输出。
 
 ### 5.3 双语语法静态检查六步自检法则
 
@@ -413,31 +2034,65 @@
 |---|---|---|
 | **1. 继承与实现** | 严格单继承 `extends`，多接口 `implements A, B` | `: public BaseClass`（切勿遗漏 `public`） |
 | **2. 抽象方法声明** | `public abstract void action();` | `virtual void action() = 0;`（纯虚函数） |
-| **3. 析构函数** | 垃圾回收器自动回收，无需析构 | 基类必须声明虚析构：`virtual ~Base() {}` |
+| **3. 析构函数** | 垃圾回收器自动回收，无需析构 | 经基类指针销毁派生对象时需虚析构：`virtual ~Base() {}` |
 | **4. 构造链调用** | 子类首行调用：`super(args);` | 初始化列表传参：`Derived(...) : Base(args)` |
-| **5. 指针与引用** | 引用变量一律使用点号 `.` | 指针变量一律使用箭头 `->`，对象使用 `.` |
+| **5. 指针与引用** | 引用变量一律使用点号 `.` | 按表达式类型判定：对象/对象引用用 `.`，指针用 `->`（或 `(*p).`）；指针的引用仍按指针操作 |
 | **6. 容器遍历** | `for (Component c : list)` 或迭代器强转 | `vector<Item*>::iterator it` 解引用 `(*it)->action()` |
 
-### 5.4 16 种真题考查模式核心代码骨架填空速查表
+### 5.4 19 种教学模式填空核查表
 
-下表汇总了历年案例真题试题五/六所覆盖的 16 种设计模式的高频挖空位置与代码填空套路：
+| 模式 | 需要检查的职责和代码链 |
+|---|---|
+| 桥接 | 两个独立变化维度；抽象持有实现接口，先装配再委托。检查接口签名、成员类型、构造实参和最终调用。 |
+| 组合 | 叶子与容器共享接口；容器保存抽象构件并递归分派。检查接口签名、成员类型、构造实参和最终调用。 |
+| 策略 | 环境类保存可替换策略；构造/Setter 注入，业务入口委托。检查接口签名、成员类型、构造实参和最终调用。 |
+| 状态 | 行为取决于当前状态；状态对象通过 Context 改变后续行为。检查接口签名、成员类型、构造实参和最终调用。 |
+| 观察者 | 目标维护观察者集合，状态改变后通知全部订阅者。检查接口签名、成员类型、构造实参和最终调用。 |
+| 适配器 | 目标接口与旧接口不兼容；适配器持有旧对象并转换调用。检查接口签名、成员类型、构造实参和最终调用。 |
+| 装饰 | 装饰器也实现构件接口，委托原构件后增加职责。检查接口签名、成员类型、构造实参和最终调用。 |
+| 命令 | 调用者持有命令接口；具体命令保存接收者并调用其业务。检查接口签名、成员类型、构造实参和最终调用。 |
+| 访问者 | accept 接收访问者，内部 visit(this) 完成双分派。检查接口签名、成员类型、构造实参和最终调用。 |
+| 模板方法 | 父类固定算法流程，抽象步骤由子类实现。检查接口签名、成员类型、构造实参和最终调用。 |
+| 抽象工厂 | 同一工厂创建兼容的产品族，客户端依赖抽象产品。检查接口签名、成员类型、构造实参和最终调用。 |
+| 生成器 | 指挥者控制步骤，建造者保存并返回产品。检查接口签名、成员类型、构造实参和最终调用。 |
+| 原型 | 通过多态 clone 复制对象；验证副本与原型不共享可变状态。检查接口签名、成员类型、构造实参和最终调用。 |
+| 备忘录 | 发起人保存/恢复状态，管理者保存快照而不修改其内容。检查接口签名、成员类型、构造实参和最终调用。 |
+| 中介者 | 同事只知道中介者，由中介者决定通知对象。检查接口签名、成员类型、构造实参和最终调用。 |
+| 外观 | 门面串联子系统调用；客户端只认识统一入口。检查接口签名、成员类型、构造实参和最终调用。 |
+| 享元 | 工厂按内部状态复用对象，外部状态在调用时传入。检查接口签名、成员类型、构造实参和最终调用。 |
+| 责任链 | 请求沿后继传递；当前处理者不能处理才交给下一位。检查接口签名、成员类型、构造实参和最终调用。 |
+| 迭代器 | 聚合对象提供迭代入口；先判断终点再读取/推进。检查接口签名、成员类型、构造实参和最终调用。 |
 
-| 模式名称 | 核心结构特征 | 最高频挖空位置 | Java / C++ 填空标准套路 |
-|---|---|---|---|
-| **桥接模式 (Bridge)** | 抽象化持有实现化接口 `imp` | 构造/Setter注入、委托调用 | `imp.doPaint(m);` / `imp->doPaint(m);` |
-| **组合模式 (Composite)** | 容器既继承构件又聚合构件集合 | 递归遍历子构件分派调用 | `for(Component c : list) c.print();` |
-| **观察者模式 (Observer)** | 目标类维护观察者列表 | 状态变更后循环通知 | `for(Observer o : observers) o.update(state);` |
-| **策略模式 (Strategy)** | 环境类持有策略接口引用 | 执行算法时委托策略对象 | `strategy.algorithmInterface(param);` |
-| **状态模式 (State)** | 状态类持有环境类并触发切换 | 状态流转时重设环境状态 | `context.setState(new StateB());` |
-| **访问者模式 (Visitor)** | 元素类 `accept` 与访问者 `visit` | 双分派调用互传 `this` | `visitor.visit(this);` / `element.accept(v);` |
-| **装饰模式 (Decorator)** | 装饰器持有被装饰构件 `component`| 调用前后增加附加功能 | `super.operation();` 或 `component.operation();` |
-| **适配器模式 (Adapter)** | 适配器持有被适配者 `adaptee` | 接口转换委托调用 | `adaptee.specificRequest();` |
-| **备忘录模式 (Memento)** | 发起人创建与恢复备忘录 | 保存状态与恢复状态 | `return new Memento(state);` / `this.state = m.getState();` |
-| **命令模式 (Command)** | 命令类持有接收者 `receiver` | `execute()` 内部调用接收者 | `receiver.action();` |
-| **享元模式 (Flyweight)** | 工厂管理内部状态对象池 | 池化查询与按需创建 | `if(!pool.containsKey(key)) pool.put(key, new ...);` |
-| **生成器模式 (Builder)** | 指导者 `Director` 组装构建过程 | 分步调用各构造零件方法 | `builder.buildPartA(); builder.buildPartB();` |
-| **模板方法 (Template Method)** | 父类定义骨架，子类重写基本方法 | 抽象基类中定义基本方法签名 | `abstract void stepOne();` / `virtual void step() = 0;` |
-| **迭代器模式 (Iterator)** | 聚合对象提供创建迭代器工厂方法 | 迭代游标推进与越界判断 | `return new ConcreteIterator(this);` |
-| **责任链模式 (Chain of Resp.)** | 处理者持有下一后继者 `successor` | 无法处理时后继传递 | `if(successor != null) successor.handle(request);` |
-| **抽象工厂模式 (Abstract Factory)**| 工厂接口声明创建一组产品族方法 | 具体工厂实现具体产品创建 | `return new ConcreteProductA();` |
+## 6. 从完整程序到得分空位的闭卷训练
 
+先固定一种主攻语言，再用另一种语言核对相同角色。按题面语言选题，不按平台题号推断。每个空都写下“此处应产生什么类型、由谁持有、调用谁的方法、参数从哪里来”。
+
+### 6.1 策略：声明、注入、委托三处连练
+
+Java：`interface Pay { int cost(int amount); }`；Order 中成员空为 `Pay pay`，构造参数为 `Pay p`，赋值空为 `this.pay = p`，业务返回空为 `pay.cost(amount)`。若接口方法声明留空，要填完整 `int cost(int amount)`，不能只填 cost。
+
+C++：`Pay* pay` 保存非拥有指针；构造 `Order(Pay& p) : pay(&p) {}`；调用 `pay->cost(amount)`。若改为 `Pay& pay`，初始化为 `pay(p)`，调用改为 `pay.cost(amount)`。必须先看类型再选符号。
+
+自测：环境类持有 `Rule* rule`，接口 `virtual int calc(int n)=0;`，构造接收 `Rule& r`。补初始化与执行表达式。（`rule(&r)`；`rule->calc(n)`。）
+
+### 6.2 组合：共同属性、抽象签名、容器和初始化
+
+Java 父类共同属性 `String name`；抽象方法 `public abstract void draw();`；子构件集合 `List<Node> children = new ArrayList<>();`。若题面已给 `public` 与分号，空内只写 `abstract void draw()`。构造器有字符串形参时，`new Group("root")` 要传入实参。
+
+C++ 抽象方法 `virtual void draw() = 0;`；集合可为 `vector<Node*> children`，遍历 `for (Node* child : children) child->draw();`。非拥有集合的 remove 只解除连接，不能擅自 delete；若父节点负责所有权，应换明确的拥有模型并处理整棵树的销毁。
+
+自测：root 含 sub，sub 含 a，root 另含 b，调用 root.draw 应触发哪些叶子？移除 sub 后呢？（先 a、b；移除后只 b。）
+
+### 6.3 桥接：先装配实现，再执行抽象操作
+
+Java：`Shape s = new Circle(new Screen()); s.draw();`。C++：`Screen p; Circle c(p); Shape& s=c; s.draw();`。抽象角色应依赖 Painter 接口，不能写死 Screen 类型；业务执行时调用所持有实现者。
+
+自测：加入 Printer 实现和 Square 抽象子类，是否需要为 ScreenSquare、PrinterSquare 分别建类？（不需要，分别新增独立维度的类，再装配即可。）
+
+### 6.4 模式辨析与逐空验收
+
+- 策略与状态：前者选择可替换算法，后者根据当前状态决定行为及迁移；不能只因都有接口引用就判同一模式。
+- 桥接与适配器：前者预先分离变化维度，后者解决已有接口不兼容。
+- 装饰与组合：前者包装并增加职责，后者表达部分—整体并递归分派。
+- 工厂与责任链：工厂创建对象；责任链把请求交给候选处理者并逐级转交。
+- 每个空核对声明上下文、访问权限、返回类型、参数、构造链、实例化实参、分号边界和实际调用结果。先遮住答案作答，再运行迁移例验证，不能以“看懂代码”替代闭卷补全。

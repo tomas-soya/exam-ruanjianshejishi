@@ -4,6 +4,8 @@ const { GatewayAdapter } = require('../adapter/gateway');
 const { detectPromptInjection } = require('../rubric/score-sanitizer');
 const { buildPersonalMaterialsPrompt, buildConciseFallbackPrompt, buildReviewConsolidationPrompt } = require('./materials-prompt-builder');
 const { isLossEvidence, parseReviewCards, renderReviewCards } = require('./review-cards');
+const { AsyncLocalStorage } = require('node:async_hooks');
+const { synthesizeIncremental } = require('./incremental-review');
 
 // Materials include extraction, consolidation and evidence review. A short
 // timeout saved for chat/scoring must not cut off these longer requests.
@@ -24,20 +26,50 @@ class PersonalMaterialsSynthesizer {
     this.timeoutMs = resolveMaterialsTimeoutMs(options.timeoutMs);
     this.maxRetries = options.maxRetries !== undefined ? options.maxRetries : 2;
     this.batchSize = (typeof options.batchSize === 'number' && options.batchSize > 0) ? options.batchSize : 2;
+    this.concurrency = options.concurrency || 2;
+    this.requestContext = new AsyncLocalStorage();
+    this.requestSlots = 0;
+    this.requestWaiters = [];
   }
 
-  _chatCompletion(options) {
+  async _chatCompletion(options) {
     // DeepSeek defaults to thinking mode, where reasoning can consume the
     // whole output budget before any card is emitted. Only material requests
     // opt out; other gateway consumers keep their existing behavior.
     const deepseek = /^deepseek-/i.test(this.gatewayAdapter.model || '');
-    return this.gatewayAdapter.chatCompletion({ ...(deepseek ? {
+    if (this.requestSlots >= this.concurrency) await new Promise(resolve => this.requestWaiters.push(resolve));
+    else this.requestSlots++;
+    const context = this.requestContext.getStore();
+    const started = Date.now();
+    if (context) context.telemetry.calls++;
+    try {
+      if (options.signal?.aborted) throw options.signal.reason || new Error('Material synthesis cancelled');
+      const response = await this.gatewayAdapter.chatCompletion({ ...(deepseek ? {
       thinkingMode: 'disabled', responseFormat: { type: 'json_object' }
     } : {}), ...options,
       // Apply at the request boundary too: startup hydration and hot reload
       // can replace this.timeoutMs with the shared setting (often 30 seconds).
       timeoutMs: resolveMaterialsTimeoutMs(options.timeoutMs ?? this.timeoutMs)
-    });
+      });
+      if (context && response.usage) {
+        context.telemetry.usage ||= {};
+        for (const [key, value] of Object.entries(response.usage)) {
+          if (typeof value === 'number') context.telemetry.usage[key] = (context.telemetry.usage[key] || 0) + value;
+        }
+      }
+      return response;
+    } finally {
+      if (context) {
+        const duration = Date.now() - started;
+        context.telemetry.requestMs += duration;
+        const stage = context.stage || 'other';
+        context.telemetry.stages[stage] ||= { calls: 0, ms: 0 };
+        context.telemetry.stages[stage].calls++;
+        context.telemetry.stages[stage].ms += duration;
+      }
+      const next = this.requestWaiters.shift();
+      if (next) next(); else this.requestSlots--;
+    }
   }
 
   /**
@@ -58,7 +90,8 @@ class PersonalMaterialsSynthesizer {
     referenceTopics,
     signal,
     isFirstBatch,
-    depth = 0
+    depth = 0,
+    emptyRetry = 0
   }) {
     if (!evidences || evidences.length === 0) return { rawContent: '', points: [] };
     if (signal?.aborted) {
@@ -173,6 +206,8 @@ class PersonalMaterialsSynthesizer {
 
     const rawContent = response && response.content ? response.content : '';
     if (!rawContent || rawContent.trim().length === 0) {
+      if (emptyRetry === 0) return this._executeBatchWithSubdivision({ chapterName, subject, evidences,
+        accumulatedBulletPoints, existingMarkdown, referenceTopics, signal, isFirstBatch, depth, emptyRetry: 1 });
       throw new Error('LLM Gateway returned empty content for personal material synthesis');
     }
 
@@ -185,6 +220,7 @@ class PersonalMaterialsSynthesizer {
     let cards;
     try {
       cards = parseReviewCards(content, refs, sources);
+      this._validateScopedCards(cards, evidences);
     } catch (error) {
       const response = await this._chatCompletion({
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt },
@@ -193,9 +229,20 @@ class PersonalMaterialsSynthesizer {
       });
       this._assertComplete(response);
       cards = parseReviewCards(response.content, refs, sources);
+      this._validateScopedCards(cards, evidences);
     }
     const rendered = renderReviewCards(cards, chapterName);
     return { cards, rawContent: rendered.markdown, points: rendered.points };
+  }
+
+  _validateScopedCards(cards, evidences) {
+    for (const ev of evidences.filter(item => item.reviewScope === 'scoring-unit')) {
+      const scoped = cards.filter(card => card.refs.includes(ev._reviewRef));
+      if (scoped.length !== 1) throw new Error(`复习卡片质量检查：${ev._reviewRef} 仅对应一个已细分失分动作，请合成一张完整卡，删除同题其他失分项的重复扩写`);
+      if (ev.lossUnit.topicHint && scoped[0].topic !== ev.lossUnit.topicHint) {
+        throw new Error(`复习卡片质量检查：${ev._reviewRef} 的 topic 须采用给定 topicHint：${ev.lossUnit.topicHint}`);
+      }
+    }
   }
 
   _assertComplete(response) {
@@ -281,7 +328,9 @@ class PersonalMaterialsSynthesizer {
       response = await this._chatCompletion({ ...request, maxTokens: 16384 });
     }
     this._assertComplete(response);
-    return parseReviewCards(response.content, evidences.map(ev => ev._reviewRef), evidences.flatMap(ev => [ev.stem, ev.analysis, ev.feedback]));
+    const checked = await this._validateBatchCards(response.content, evidences, chapterName,
+      request.messages[0].content, request.messages[1].content, signal);
+    return checked.cards;
   }
 
   /**
@@ -364,7 +413,8 @@ class PersonalMaterialsSynthesizer {
     existingMarkdown = null,
     existingMetadata = null,
     referenceTopics = '',
-    signal = null
+    signal = null,
+    onCheckpoint = null
   }) {
     if (!chapterKey || !chapterName) {
       throw new Error('Chapter key and name are required for personal material synthesis');
@@ -471,65 +521,10 @@ class PersonalMaterialsSynthesizer {
       };
     }
 
-    const batchSize = (typeof this.batchSize === 'number' && this.batchSize > 0) ? this.batchSize : 2;
-    const batches = [];
-    for (let i = 0; i < allWrongEvidences.length; i += batchSize) {
-      batches.push(allWrongEvidences.slice(i, i + batchSize));
-    }
-
-    const collectedCards = [];
-    const accumulatedBulletPoints = [];
-
-    for (let bIndex = 0; bIndex < batches.length; bIndex++) {
-      if (signal?.aborted) {
-        const abortErr = new Error('Material synthesis cancelled by user');
-        abortErr.name = 'AbortError';
-        throw abortErr;
-      }
-
-      const batchResult = await this._executeBatchWithSubdivision({
-        chapterName,
-        subject,
-        evidences: batches[bIndex],
-        accumulatedBulletPoints,
-        existingMarkdown,
-        referenceTopics,
-        signal,
-        isFirstBatch: bIndex === 0
-      });
-
-      collectedCards.push(...batchResult.cards);
-      accumulatedBulletPoints.push(...batchResult.points);
-    }
-
-    let reviewCards = await this._consolidateCards(chapterName, collectedCards, signal);
-    reviewCards = await this._reviewAgainstEvidence(chapterName, subject, reviewCards, allWrongEvidences, signal);
-    reviewCards = await this._mergeExactTopics(chapterName, reviewCards, signal);
-    const { markdown, summary } = renderReviewCards(reviewCards, chapterName);
-
-    const metadata = {
-      chapterKey,
-      chapterName,
-      subject,
-      referencedQuestionIds,
-      totalQuestionsAnalyzed: referencedQuestionIds.length,
-      lastEvidenceCount: answeredEvidences.length,
-      hasErrorsInLastSession: true,
-      promptInjectionDetected,
-      ebbinghaus,
-      summary,
-      retainedEvidences: allWrongEvidences,
-      reviewCards,
-      formatVersion: 'review-cards-v1',
-      synthesizedAt: new Date().toISOString()
-    };
-
-    return {
-      markdown,
-      summary,
-      ebbinghaus,
-      metadata
-    };
+    return synthesizeIncremental(this, {
+      chapterKey, chapterName, subject, evidences: allWrongEvidences, existingMetadata,
+      signal, onCheckpoint, ebbinghaus, referencedQuestionIds, promptInjectionDetected
+    });
   }
 }
 

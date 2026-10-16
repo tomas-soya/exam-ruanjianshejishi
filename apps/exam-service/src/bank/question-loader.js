@@ -19,6 +19,8 @@ const {
 const PAPER_CANONICAL_MAP = new Map([
   ['sd-2025-11-objective-ca64ac1a7b', 'sd-2025-11-objective-538ce18411'],
   ['sd-2025-05-objective-d3096bb60a', 'sd-2025-05-objective-06b5ee83d9'],
+  ['sd-2024-11-objective-4f81d3386c', 'sd-2024-11-objective-096579e82d'],
+  ['malinkang-2024-11-objective-free', 'sd-2024-11-objective-096579e82d'],
   ['sd-2020-unknown-case-d1faf9ce88', 'sd-2020-11-case-6cc1a51bb5'],
   ['sd-2019-05-case-f40b76fa80', 'sd-2019-05-case-137bfb3b31'],
   ['sd-2018-11-case-e1415fdf90', 'sd-2018-11-case-f64ef3dc89'],

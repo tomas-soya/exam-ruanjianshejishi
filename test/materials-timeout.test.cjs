@@ -67,7 +67,7 @@ test('saved 30s configuration and hot reload allow a real 31s HTTP material resp
     markdownContent: '- 旧资料', metadataJson: JSON.stringify({ retainedEvidences: [evidence] }) });
   materials.createSyncJob(db, { id: 'slow-materials', chapterKey: key, payloadJson: '{}' });
   await manager.processQueue();
-  assert.equal(calls, 2, 'Extraction and evidence review must both complete');
+  assert.equal(calls, 2, materials.getSyncJob(db, 'slow-materials').error_message || 'Extraction and evidence review must both complete');
   assert.equal(materials.getSyncJob(db, 'slow-materials').status, 'done');
   const saved = materials.getChapterMaterial(db, key);
   assert.equal(saved.status, 'updated');

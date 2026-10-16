@@ -211,7 +211,10 @@ const { QuestionBankLoader } = require(path.join(target, 'bin/exam-service/src/b
 const { readRecord } = require(path.join(target, 'bin/exam-service/src/bank/record-codec.js'));
 const bankRoot = path.join(target, 'resources/bank');
 const bank = new QuestionBankLoader(bankRoot);
-assert.equal(bank.listVerifiedPapers().length, 45, 'Must have 45 verified papers');
+assert.equal(bank.listVerifiedPapers().length, 44, 'Must have 44 verified papers');
+const p202411 = bank.listVerifiedPapers().filter(p => p.year === '2024' && p.season === '11' && p.subject === 'objective');
+assert.equal(p202411.length, 1, 'Must have exactly 1 2024-11 objective paper');
+assert.equal(p202411[0].totalQuestions, 75, '2024-11 objective paper must have 75 questions');
 
 const counts = {};
 for (const subject of ['objective', 'case']) {
@@ -237,7 +240,7 @@ console.log(JSON.stringify({
   zipSha256,
   zipSizeMb: (zipStat.size / (1024 * 1024)).toFixed(2),
   papers: 52,
-  visiblePapers: 45,
+  visiblePapers: bank.listVerifiedPapers().length,
   ...counts,
   images: 587,
   zipEntriesCount: zipEntries.length,

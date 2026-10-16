@@ -328,7 +328,7 @@ const STANDARD_CHAPTERS = [
 
   // 8 Case Chapters
   { key: 'case_01_dfd', name: '结构化分析与设计', subject: 'case', docPath: '案例题/01-结构化分析与设计.md', order: 14 },
-  { key: 'case_02_design_patterns', name: '面向对象设计模式与Java实现', subject: 'case', docPath: '案例题/02-面向对象设计模式与Java实现.md', order: 15 },
+  { key: 'case_02_design_patterns', name: '面向对象设计模式与C++/Java实现', subject: 'case', docPath: '案例题/02-面向对象设计模式与Java实现.md', order: 15 },
   { key: 'case_03_uml_class', name: 'UML类图与面向对象分析', subject: 'case', docPath: '案例题/03-UML类图与面向对象分析.md', order: 16 },
   { key: 'case_04_db_design', name: '数据库设计与关系模式', subject: 'case', docPath: '案例题/04-数据库设计与关系模式.md', order: 17 },
   { key: 'case_05_uml_usecase', name: 'UML用例图与活动图', subject: 'case', docPath: '案例题/05-UML用例图与活动图.md', order: 18 },
@@ -358,6 +358,12 @@ function resolveStandardChapter(target) {
   if (directKeyMatch) return directKeyMatch;
 
   if (isCase) {
+    // Strong title/declared-language evidence precedes incidental vocabulary
+    // such as "分支" or design-pattern names in an algorithm's explanation.
+    const title = typeof target === 'object' ? `${target.case_title || target.caseTitle || ''} ${target.questionStem || ''}` : text;
+    if (/(n\s*皇后|二叉排序树|二叉查找树|C\s*(?:程序|语言|代码).*算法|动态规划|哈密尔顿|矩阵链乘)/i.test(title) && !/(Java|C\+\+)/i.test(title))
+      return STANDARD_CHAPTERS.find(c => c.key === 'case_08_algorithm_case');
+    if (/(Java|C\+\+)/i.test(title)) return STANDARD_CHAPTERS.find(c => c.key === 'case_02_design_patterns');
     if (/(数据流图|DFD|0层图|顶层图|外部实体|加工逻辑|数据字典)/i.test(text)) return STANDARD_CHAPTERS.find(c => c.key === 'case_01_dfd');
     if (/(数据库|关系模式|E-R|实体联系|范式|主键|外键|1NF|2NF|3NF|BCNF)/i.test(text)) return STANDARD_CHAPTERS.find(c => c.key === 'case_04_db_design');
     if (/(用例图|活动图|参与者|包含关系|扩展关系|泳道|分支)/i.test(text)) return STANDARD_CHAPTERS.find(c => c.key === 'case_05_uml_usecase');

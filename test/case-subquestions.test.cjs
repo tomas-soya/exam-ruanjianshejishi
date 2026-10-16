@@ -134,3 +134,71 @@ test('整卷界面能切换每问，输入更新对应键并保留其余草稿',
     }
   }
 });
+
+test('案例分析标准6题卷按二选一选做规范作答提交后正确标记为已全部刷完并提交', () => {
+  const db = createDatabase();
+  runMigrations(db);
+  const service = Object.assign(Object.create(ExamService.prototype), { db, bankLoader: bank });
+  try {
+    const questions = bank.getSanitizedPaperQuestions(paperId);
+    assert.equal(questions.length, 6);
+
+    // 1. Session A: 必做前4题全做 + 选做题试题五全做，试题六留空 -> 应判定为已全部刷完
+    const sessionA = service.createSession({ paperId });
+    for (let i = 0; i < 5; i++) {
+      const q = questions[i];
+      const answer = Object.fromEntries(q.subQuestions.map(sub => [sub.id, `有效解答 ${sub.id}`]));
+      service.saveAnswerDraft(sessionA.id, { questionId: q.id, questionType: 'case', userAnswer: answer });
+    }
+    db.prepare("UPDATE exam_sessions SET status='submitted' WHERE id=?").run(sessionA.id);
+    assert.equal(service.isPaperCompleted(bank.getPaper(paperId)), true);
+
+    const papers = service.listPapers('case');
+    const targetPaper = papers.find(p => p.id === paperId);
+    assert.ok(targetPaper);
+    assert.equal(targetPaper.isCompleted, true);
+    assert.equal(targetPaper.completed, true);
+
+    // 2. 清除 submitted 状态测试 Session B: 必做前4题全做 + 选做题试题六全做，试题五留空 -> 应判定为已全部刷完
+    db.prepare("UPDATE exam_sessions SET is_deleted=1 WHERE id=?").run(sessionA.id);
+    assert.equal(service.isPaperCompleted(bank.getPaper(paperId)), false);
+
+    const sessionB = service.createSession({ paperId });
+    for (let i = 0; i < 4; i++) {
+      const q = questions[i];
+      const answer = Object.fromEntries(q.subQuestions.map(sub => [sub.id, `有效解答 ${sub.id}`]));
+      service.saveAnswerDraft(sessionB.id, { questionId: q.id, questionType: 'case', userAnswer: answer });
+    }
+    const q6 = questions[5];
+    const ans6 = Object.fromEntries(q6.subQuestions.map(sub => [sub.id, `试题六解答 ${sub.id}`]));
+    service.saveAnswerDraft(sessionB.id, { questionId: q6.id, questionType: 'case', userAnswer: ans6 });
+    db.prepare("UPDATE exam_sessions SET status='submitted' WHERE id=?").run(sessionB.id);
+    assert.equal(service.isPaperCompleted(bank.getPaper(paperId)), true);
+
+    // 3. Session C: 必做前4题全做，但两道选做题均未作答 -> 必须判定为未刷完 (false)
+    db.prepare("UPDATE exam_sessions SET is_deleted=1 WHERE id=?").run(sessionB.id);
+    const sessionC = service.createSession({ paperId });
+    for (let i = 0; i < 4; i++) {
+      const q = questions[i];
+      const answer = Object.fromEntries(q.subQuestions.map(sub => [sub.id, `有效解答 ${sub.id}`]));
+      service.saveAnswerDraft(sessionC.id, { questionId: q.id, questionType: 'case', userAnswer: answer });
+    }
+    db.prepare("UPDATE exam_sessions SET status='submitted' WHERE id=?").run(sessionC.id);
+    assert.equal(service.isPaperCompleted(bank.getPaper(paperId)), false);
+
+    // 4. Session D: 必做前4题全做，但选做题只填了空字符串或不完整 -> 必须判定为未刷完 (false)
+    db.prepare("UPDATE exam_sessions SET is_deleted=1 WHERE id=?").run(sessionC.id);
+    const sessionD = service.createSession({ paperId });
+    for (let i = 0; i < 4; i++) {
+      const q = questions[i];
+      const answer = Object.fromEntries(q.subQuestions.map(sub => [sub.id, `有效解答 ${sub.id}`]));
+      service.saveAnswerDraft(sessionD.id, { questionId: q.id, questionType: 'case', userAnswer: answer });
+    }
+    const q5 = questions[4];
+    service.saveAnswerDraft(sessionD.id, { questionId: q5.id, questionType: 'case', userAnswer: { sub1: '   ' } });
+    db.prepare("UPDATE exam_sessions SET status='submitted' WHERE id=?").run(sessionD.id);
+    assert.equal(service.isPaperCompleted(bank.getPaper(paperId)), false);
+  } finally {
+    db.close();
+  }
+});

@@ -4,7 +4,7 @@
     "objective": 1560,
     "caseGroups": 162,
     "physicalPapers": 52,
-    "visiblePapers": 45,
+    "visiblePapers": 44,
     "images": 587
   },
   "files": [
@@ -30,7 +30,7 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "47f905d79402bc7b59cedecab24005c7dab11c290f2ab1c8e033a4c8df29af56"
+      "sha256": "22a7a453e91cea99242b1f66dfd9548e605b4e409960dae237119db015331e22"
     },
     {
       "path": "CONTENT_NOTICE.md",
@@ -50,7 +50,7 @@
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "a18793e52c73d5a278ee6a096b2c05f960a6d2af934a4e30413e48d2175e6c15"
+      "sha256": "ebd264806706b3c610dfbac121af500c6e9f45b3372d8cfb6221c384ce3d2178"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -62,7 +62,7 @@
     },
     {
       "path": "apps/exam-contracts/dist/index.js",
-      "sha256": "7e5c393d561d7749105e9f4224d028d868cad468e245716616116eea15c45a1a"
+      "sha256": "2b2099b713385113320cc51e71fcff6267b806871b0e23d55d221d1766cecddc"
     },
     {
       "path": "apps/exam-contracts/dist/index.mjs",
@@ -70,7 +70,7 @@
     },
     {
       "path": "apps/exam-contracts/package.json",
-      "sha256": "3a3217e384a2b3eebf15165ec96e74beea4cf8f6f2ac768bf85be2046616221a"
+      "sha256": "64ec47588c6cf523fc07ef171cf291e31a7941aee55294bd2faaae718a274f27"
     },
     {
       "path": "apps/exam-contracts/src/index.ts",
@@ -94,7 +94,7 @@
     },
     {
       "path": "apps/exam-llm/package.json",
-      "sha256": "6c0131c0d96e533b1f0628cde3e9e35223601538f27674f14731e8e2d0db9d29"
+      "sha256": "7470c855d43bcae226361780b929208f1af1925177613ce72936710d6db9bf79"
     },
     {
       "path": "apps/exam-llm/src/adapter/env-loader.js",
@@ -102,7 +102,7 @@
     },
     {
       "path": "apps/exam-llm/src/adapter/gateway.js",
-      "sha256": "73570c1da4a15e3b369f5fd164b9852a1d6dd2154c5d7de46d13d2612eb7dca2"
+      "sha256": "80ee424439462516b2ce8a1e3b4af088cc53887fcc522636ed5fdf71fa28579b"
     },
     {
       "path": "apps/exam-llm/src/chat/chat-service.js",
@@ -125,8 +125,12 @@
       "sha256": "4327e367c1fa5d17a329058df9d2937088ec573b777ae3a0715b0c7ba13f215f"
     },
     {
+      "path": "apps/exam-llm/src/materials/incremental-review.js",
+      "sha256": "f9887018eec1cc230f724c5cbc5d36128d3ecf20dbd1294e312cc7fa0360a82c"
+    },
+    {
       "path": "apps/exam-llm/src/materials/materials-prompt-builder.js",
-      "sha256": "eba2f4dbce8472d1c7cb9f7c5431e40835ab5f6d8094caaa2d85fe20e1291284"
+      "sha256": "46448d75051287545bf85c286af4d441adfc5e3e8013bc3253b8d199a9605a96"
     },
     {
       "path": "apps/exam-llm/src/materials/materials-sanitizer.js",
@@ -134,7 +138,7 @@
     },
     {
       "path": "apps/exam-llm/src/materials/personal-materials-synthesizer.js",
-      "sha256": "8d4a7b590fe8f0564ad287b6be94676ee8afbd500989804a2d1dfb0e8ebfbe0c"
+      "sha256": "713c1e5bf7f1500c92f8ed8c73f43425b60b6fac7a9f664d344944010bc8c476"
     },
     {
       "path": "apps/exam-llm/src/materials/review-cards.js",
@@ -162,7 +166,7 @@
     },
     {
       "path": "apps/exam-service/package.json",
-      "sha256": "8c2fa501365b4a7db03711d1bf5acd29ab75e2a694f2f9c59b98e00b87b12f3c"
+      "sha256": "6b2dafb2cff10395fced3bb10281f503db15fd3f9d15cfc6d375cd1660d09a83"
     },
     {
       "path": "apps/exam-service/src/bank/identifier-map.js",
@@ -170,7 +174,7 @@
     },
     {
       "path": "apps/exam-service/src/bank/question-loader.js",
-      "sha256": "ef160954527c587e31709c8b26aa4607aebc091ba22672eef4ad550ae3fbbad7"
+      "sha256": "0f4fc7f83fc227e8d24c5371dcdf62d3c562529644cd6522e4c0fb7009064b74"
     },
     {
       "path": "apps/exam-service/src/bank/record-codec.js",
@@ -225,12 +229,16 @@
       "sha256": "f91e09ba02e2b397ce56dd20a754717016c5094f2c2bb2a0caaafbb6395cf69a"
     },
     {
+      "path": "apps/exam-service/src/db/migrations/009_material_checkpoints.sql",
+      "sha256": "7252e7ce876b083fe70b6607fab1a4c6913272cf4fe20ba1f542ce5abcec830e"
+    },
+    {
       "path": "apps/exam-service/src/db/migrator.js",
       "sha256": "1413dbda8ea93e51d53687aa957247152c9852bff0d8d124594465150d030476"
     },
     {
       "path": "apps/exam-service/src/db/personal-materials-repository.js",
-      "sha256": "48872809efdf5a7e5b11fb727b2142f69219cfc7914e6ff36e9b2ca0a2084f9a"
+      "sha256": "fe18368d392d8cc38114378d3076bf7bc4d23f7588445fd6f7a4b5e249527d5e"
     },
     {
       "path": "apps/exam-service/src/db/review-queue-repository.js",
@@ -258,7 +266,7 @@
     },
     {
       "path": "apps/exam-service/src/material/material-sync-manager.js",
-      "sha256": "10b72f51356ccecb9d95c131811e1491f310de75f596559063958ddef1d16bb6"
+      "sha256": "eed5f177c2aa344fd2c364641a76ca03df916af95a7386e6dff069a1ef7c136c"
     },
     {
       "path": "apps/exam-service/src/scoring/case-evaluator.js",
@@ -270,7 +278,7 @@
     },
     {
       "path": "apps/exam-service/src/service/exam-service.js",
-      "sha256": "2c88c786cf045972942e58038c4649ca622d91182b007337bb18617183879d77"
+      "sha256": "5f8cccbfb4f2796e289c5c8da06c50c8ae9f8d63dc352a92a4371ef0ceae2a28"
     },
     {
       "path": "apps/exam-service/src/unified-server.js",
@@ -282,11 +290,11 @@
     },
     {
       "path": "apps/exam-web/package.json",
-      "sha256": "30d9d3d63f838706e2263501d567d09c62bfb4a68cafb200be14e006a851928c"
+      "sha256": "4a9e7a18643e0db29da9ff39cec79bc45f3f51670c38b10a15c86441dbe53ef7"
     },
     {
       "path": "apps/exam-web/public/css/style.css",
-      "sha256": "19a2115ba2a30d1a5aec98952f8a66c6e89f3fdf6ffef08161eac1dcd2855e09"
+      "sha256": "c6e6ce1065ee7a1363af3541bc4bfefc742893cd29adcd122146ad53ca1d3793"
     },
     {
       "path": "apps/exam-web/public/index.html",
@@ -366,7 +374,7 @@
     },
     {
       "path": "apps/exam-web/src/components/PersonalMaterialsView.js",
-      "sha256": "8e83d9ed163811be4f56aeda3ba59c6ee2b2e795c94252c29d13100282770064"
+      "sha256": "4c2b558471807510296055cdae89ed6b26fabc3c2bbefc17dc73172c3d75f09b"
     },
     {
       "path": "apps/exam-web/src/components/ReportView.js",
@@ -398,11 +406,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "11d118d749e400ebf2be1d99c661de63f8bd0ca446f37d828624d00d82f7f5ad"
+      "sha256": "1d2e3978246f4c1789007ba3f676dbaccb97cb69403cc1baae9859d8e79524b3"
     },
     {
       "path": "scripts/build-portable.mjs",
-      "sha256": "8b99fbcd44929774679a3f14abfab385453b99c887281febed8bf537bd8a02a7"
+      "sha256": "ab5a60759224158636cc377e4eff38b29d8259e55a5bdf9c03c7eee44f0c230f"
     },
     {
       "path": "scripts/portable/Launcher.cs",
@@ -422,7 +430,7 @@
     },
     {
       "path": "scripts/portable/verify-portable.mjs",
-      "sha256": "4794fb158089333ee1902df48483e6fcfba01755fa79cfbafc35fd83541e0b85"
+      "sha256": "5ba863301595222f9d999f9a49cab46a96ac41cb49bee41da255366dd796b9ef"
     },
     {
       "path": "scripts/public-files.cjs",
@@ -454,19 +462,27 @@
     },
     {
       "path": "test/case-subquestions.test.cjs",
-      "sha256": "39a4c0fd1ac9a60bb305e04d0a4522c5c2588fd2264f3bcb99a1f1e52a21297e"
+      "sha256": "8aac20b9ae8d62817beed45b1b1ff6af127ad56bed2b8ca31ce736b2deeaa5d5"
     },
     {
       "path": "test/gemini-materials-compatibility.test.cjs",
       "sha256": "477da54caf51c687e126909dd2005be1b4eb1059636a50f4a2041843dce3f51a"
     },
     {
+      "path": "test/incremental-review.test.cjs",
+      "sha256": "5e91c1a198a4fd06695341eca916669fafece1f7a64627750841c83c21ec3bc6"
+    },
+    {
+      "path": "test/material-reader.test.cjs",
+      "sha256": "e490a4aa544dea2d365c834414b4b1b98eeccfe21a929ca7eba7ad717dc684a1"
+    },
+    {
       "path": "test/materials-polling-and-truncation.test.cjs",
-      "sha256": "b3bf65ee0c47825d0c15af7a0035781ab2fe9456be73805b111b76e1627217c2"
+      "sha256": "6285b801eb8d0161f86a138bac00d18c37850747ea4315376dda590dc3b14bea"
     },
     {
       "path": "test/materials-timeout.test.cjs",
-      "sha256": "74ed6006a5de42d6b48ab59c1683b967aa089928d9013539c78807a6c6533d8b"
+      "sha256": "ed6acf8ee9c121068b4c3aeebd00afbbb5a41368039011447a044d3facb31471"
     },
     {
       "path": "test/open-source-privacy.test.cjs",
@@ -474,7 +490,7 @@
     },
     {
       "path": "test/open-source.test.cjs",
-      "sha256": "9e0cfea25ee7fe392a851071e5caa2617498fbe3c2d9f75a7971b0f51650d341"
+      "sha256": "4ae48d86c7f76b6220de04af67178ee355fa9cb480386d323481f23ae5c16dac"
     },
     {
       "path": "test/release-review-fixes.test.cjs",
@@ -482,43 +498,43 @@
     },
     {
       "path": "test/review-cards.test.cjs",
-      "sha256": "fe1a6a5f41a59003017e7b7d62ab6209c861b196c39dd0380561b4f0211f7b65"
+      "sha256": "28d6d5a75435c277ff405980d74ce90ee98a3ab3cc59827185e01d8aa664db2f"
     },
     {
       "path": "软件设计师复习材料/案例题/00-题型索引.md",
-      "sha256": "483e11863f6ad594a2244d76e2a06bd53e57993fd66a599669fcfba6f9685b50"
+      "sha256": "032cb0d596a7fec2a9054f05b80a875e4e3d4c784d49b67a3aa0d6f57ee9e98d"
     },
     {
       "path": "软件设计师复习材料/案例题/01-结构化分析与设计.md",
-      "sha256": "fd8f74f348948a28337e13dc892ad1431c4c8a1c2040cd9b6fca9f21c37adf96"
+      "sha256": "ceb197e485240e7beaca518fa04c66020384596d93a12681748c6bf2b245725b"
     },
     {
       "path": "软件设计师复习材料/案例题/02-面向对象设计模式与Java实现.md",
-      "sha256": "79fb30b4126280b06c4defd41c6e8e41dd5e6b33fc3dd001c75bc79835254f3f"
+      "sha256": "f06662d44d8d66053d047c1ebf56bea56d77bea0279116ea1b1747dcf1de90e1"
     },
     {
       "path": "软件设计师复习材料/案例题/03-UML类图与面向对象分析.md",
-      "sha256": "dc36c97ea859ab1959d7b20af72f4eb15471e1e3dfb1193e668aa89d6a028bd7"
+      "sha256": "335aeffe35253186b3ecdfde2317a044628016125baab98392dff502cf705024"
     },
     {
       "path": "软件设计师复习材料/案例题/04-数据库设计与关系模式.md",
-      "sha256": "7c4a1e18fcbe6afdbb2f3441259368d4b3710aec8d5c70cec3e5cddbed297393"
+      "sha256": "afe4fe4b79d03d45c603f8534430978b7b5f0e08c7b500f7adc59cf291f2dee5"
     },
     {
       "path": "软件设计师复习材料/案例题/05-UML用例图与活动图.md",
-      "sha256": "f04a66dc97e627ecef94dbcd428844da92553ccf1a49017016b011f42ebbeb29"
+      "sha256": "15029e0a7bb5212eb07b48e071420d876ab85e97513bd34c44fb760f112014c8"
     },
     {
       "path": "软件设计师复习材料/案例题/06-UML序列图与关系.md",
-      "sha256": "8e6d4e0a31379ff573cb358a53c821539a163c607686cf67afdee0913b12ebde"
+      "sha256": "b0ed5fc6a555432b154cbd41011e8879da1eb5e9cd0fe5c33eaae91b70e3bdca"
     },
     {
       "path": "软件设计师复习材料/案例题/07-UML状态图与状态转换.md",
-      "sha256": "f75616723fb4cb57b27bf61cdf52f775a8c8e8979a8a80880faa0833ceeca749"
+      "sha256": "432c79be5d333f794369ec909ed9ad9c108090682166c2871da0ee76fe71c366"
     },
     {
       "path": "软件设计师复习材料/案例题/08-算法设计与分析.md",
-      "sha256": "82a8e387c7213a21b9387507604cdfe7804422f53a5d2f3cf8c9b754862718fe"
+      "sha256": "e8f8bfb83f8388ee369e484be0967f63217ad78e412d9c146f1b46100ab288e8"
     },
     {
       "path": "软件设计师复习材料/案例题/assets/历年真题/2016-上半年/q1_ans_fig1.jpg",
@@ -1122,7 +1138,7 @@
     },
     {
       "path": "软件设计师复习材料/软件设计师复习材料-案例题.md",
-      "sha256": "49af5a99629e16251009648eb0db78dec5ba25202c48f36947f081d65a4e4300"
+      "sha256": "5faeec9cac93efecedcb35bcd9d906e200c3d7d0bfb694b8499e39796eea67e1"
     },
     {
       "path": "软件设计师复习材料/软件设计师复习材料-选择题.md",
@@ -3530,7 +3546,7 @@
     },
     {
       "path": "题库/manifest.reconciliation.json",
-      "sha256": "60cda2931c5b6d497d6c99d0abaf85f4e309ad28a7104e55ceca4f1d2eea7b6f"
+      "sha256": "3bfd8c9e05cde97fd0f8129de6fecbe2717d0fa5c8eced5af9b862120df24e74"
     },
     {
       "path": "题库/papers/sd-2009-11-case-93702235a5.json",

@@ -19,8 +19,8 @@ test('Fix 1: PersonalMaterialsSynthesizer recovers from length truncation via ad
     chatCompletion: async (opts) => {
       callCount++;
       const userPrompt = opts.messages[1].content;
-      // When batch contains multiple items (共 2 题), simulate LLM finish_reason: length truncation
-      if (userPrompt.includes('共 2 题')) {
+      // A two-unit request is truncated, forcing a meaningful subdivision.
+      if (userPrompt.includes('共 2 项')) {
         return {
           content: '- 【考点名称】截断无法闭合...',
           raw: { choices: [{ finish_reason: 'length' }] }

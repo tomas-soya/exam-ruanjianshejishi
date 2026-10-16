@@ -223,3 +223,37 @@
 
 > **考场速记口诀**：
 > **“整体消亡部分死，实心组合不可分；整体散了部分在，空心聚合可独立；菱形统一放整体，箭头始终指被调。”**
+
+## 6. 序列图完整演练：带条件分支的预约确认
+
+前面 ETC 示例用于类间关系辨析；本节单独训练时序，不把用例图/类图练习当作序列图覆盖。
+
+原创题面：用户向页面提交班次编号，页面调用预约控制器；控制器先查库存。有余位则预占库存，调用支付服务；支付成功后创建预约并返回编号；支付失败则释放库存并返回失败。无余位时直接返回无余位，不发起支付。生命线从左至右为 User、Page、BookingController、Stock、Payment、Booking。
+
+纯文本时序：
+
+```text
+User -> Page: submit(slotId)
+Page -> BookingController: reserve(slotId)
+BookingController -> Stock: available(slotId)
+Stock --> BookingController: remaining
+alt [remaining > 0]
+  BookingController -> Stock: hold(slotId)
+  BookingController -> Payment: pay()
+  Payment --> BookingController: paid
+  alt [paid]
+    BookingController -> Booking: create(slotId)
+    Booking --> BookingController: bookingId
+  else [!paid]
+    BookingController -> Stock: release(slotId)
+  end
+else [remaining == 0]
+  BookingController --> Page: noSeat
+end
+BookingController --> Page: result
+Page --> User: display(result)
+```
+
+设问与推导：available/hold/release 应属于 Stock；pay 属于 Payment；create 属于 Booking 的题设创建职责。paid 来自 pay 返回值，不能支付前先判断 paid；bookingId 在创建之后才能返回。无余位分支与有余位分支构成 alt；若允许重复支付尝试，可在题设规定的次数与条件下加入 loop，不能凭空添加。
+
+自测：把 release(slotId) 写成 Page 接收的消息有什么问题？（接收对象职责不匹配；释放库存由 Stock 提供，应由控制器向 Stock 发起。）若 Booking 对象仅在 create 时产生，其生命线应从创建位置开始，不能在对象创建前向该实例调用业务。

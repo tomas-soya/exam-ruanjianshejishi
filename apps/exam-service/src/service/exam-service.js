@@ -45,7 +45,7 @@ const STATIC_OBJECTIVE_CHAPTERS = [
 
 const STATIC_CASE_TOPICS = [
   { id: '01-结构化分析与设计', title: '01-结构化分析与设计', doc: '案例题/01-结构化分析与设计.md', subject: 'case' },
-  { id: '02-面向对象设计模式与Java实现', title: '02-面向对象设计模式与Java实现', doc: '案例题/02-面向对象设计模式与Java实现.md', subject: 'case' },
+  { id: '02-面向对象设计模式与Java实现', title: '02-面向对象设计模式与C++和Java实现', doc: '案例题/02-面向对象设计模式与Java实现.md', subject: 'case' },
   { id: '03-UML类图与面向对象分析', title: '03-UML类图与面向对象分析', doc: '案例题/03-UML类图与面向对象分析.md', subject: 'case' },
   { id: '04-数据库设计与关系模式', title: '04-数据库设计与关系模式', doc: '案例题/04-数据库设计与关系模式.md', subject: 'case' },
   { id: '05-UML用例图与活动图', title: '05-UML用例图与活动图', doc: '案例题/05-UML用例图与活动图.md', subject: 'case' },
@@ -195,8 +195,11 @@ class ExamService {
   /**
    * AC-03: Determines if a paper has an undeleted, fully-answered, submitted whole-paper session.
    * - Objective: all paper questions must have valid non-empty answer.
-   * - Case: all paper question groups must have ALL required subquestions validly answered
-   *   (never consider complete if only partial subquestions answered).
+   * - Case (standard 6-question exam):
+   *   - Questions 1..4 (group 1..4) are compulsory, must have ALL required subquestions validly answered.
+   *   - Questions 5..6 (group 5..6) are 2-choose-1 elective, at least one elective question must have
+   *     ALL required subquestions validly answered.
+   * - Case (non-6-question exam): all paper question groups must have ALL required subquestions validly answered.
    * - Excludes partial submissions, unsubmitted in-progress, chapter/wrong sessions, deleted sessions.
    * - Later in-progress session does not erase prior valid completion.
    * - Score/passing does not determine completion.
@@ -227,6 +230,9 @@ class ExamService {
       return false;
     }
 
+    const paperSubject = paper.subject || this.bankLoader.getPaper(canonicalId)?.subject || this.bankLoader.getPaper(paper.id)?.subject;
+    const isStandard6Case = paperSubject === 'case' && expectedQids.length === 6;
+
     const answerStmt = this.db.prepare(`
       SELECT question_id AS questionId, user_answer_json AS rawAnswer
       FROM exam_answers
@@ -240,46 +246,85 @@ class ExamService {
         answerMap.set(row.questionId, row.rawAnswer);
       }
 
-      // Check every expected question in paper
-      let allAnswered = true;
-      for (const qid of expectedQids) {
-        const rawAns = answerMap.get(qid);
-        if (!rawAns) {
-          allAnswered = false;
-          break;
-        }
+      if (isStandard6Case) {
+        // Standard 6-question case exam:
+        // Questions 1..4 (index 0..3) are compulsory, must be fully answered.
+        // Questions 5..6 (index 4..5) are 2-choose-1 elective, at least one must be fully answered.
+        const compulsoryQids = expectedQids.slice(0, 4);
+        const electiveQids = expectedQids.slice(4, 6);
 
-        if (paper.subject === 'case') {
+        let compulsoryAllAnswered = true;
+        for (const qid of compulsoryQids) {
+          const rawAns = answerMap.get(qid);
+          if (!rawAns) {
+            compulsoryAllAnswered = false;
+            break;
+          }
           const rawQ = this.bankLoader.getRawQuestion(qid);
           if (!this._isCaseQuestionFullyAnswered(rawQ, rawAns)) {
-            allAnswered = false;
-            break;
-          }
-        } else {
-          // Objective question
-          let isPopulated = false;
-          if (typeof rawAns === 'string') {
-            const trimmed = rawAns.trim();
-            if (trimmed.length > 0 && trimmed !== '""' && trimmed !== '{}') {
-              try {
-                const parsed = JSON.parse(trimmed);
-                isPopulated = typeof parsed === 'string' ? parsed.trim().length > 0 : Boolean(parsed);
-              } catch {
-                isPopulated = true;
-              }
-            }
-          } else if (rawAns !== null && rawAns !== undefined) {
-            isPopulated = true;
-          }
-          if (!isPopulated) {
-            allAnswered = false;
+            compulsoryAllAnswered = false;
             break;
           }
         }
-      }
 
-      if (allAnswered) {
-        return true;
+        if (compulsoryAllAnswered) {
+          let electiveAnyAnswered = false;
+          for (const qid of electiveQids) {
+            const rawAns = answerMap.get(qid);
+            if (rawAns) {
+              const rawQ = this.bankLoader.getRawQuestion(qid);
+              if (this._isCaseQuestionFullyAnswered(rawQ, rawAns)) {
+                electiveAnyAnswered = true;
+                break;
+              }
+            }
+          }
+          if (electiveAnyAnswered) {
+            return true;
+          }
+        }
+      } else {
+        // Non-6-question case exam or objective exam: check every expected question in paper
+        let allAnswered = true;
+        for (const qid of expectedQids) {
+          const rawAns = answerMap.get(qid);
+          if (!rawAns) {
+            allAnswered = false;
+            break;
+          }
+
+          if (paperSubject === 'case') {
+            const rawQ = this.bankLoader.getRawQuestion(qid);
+            if (!this._isCaseQuestionFullyAnswered(rawQ, rawAns)) {
+              allAnswered = false;
+              break;
+            }
+          } else {
+            // Objective question
+            let isPopulated = false;
+            if (typeof rawAns === 'string') {
+              const trimmed = rawAns.trim();
+              if (trimmed.length > 0 && trimmed !== '""' && trimmed !== '{}') {
+                try {
+                  const parsed = JSON.parse(trimmed);
+                  isPopulated = typeof parsed === 'string' ? parsed.trim().length > 0 : Boolean(parsed);
+                } catch {
+                  isPopulated = true;
+                }
+              }
+            } else if (rawAns !== null && rawAns !== undefined) {
+              isPopulated = true;
+            }
+            if (!isPopulated) {
+              allAnswered = false;
+              break;
+            }
+          }
+        }
+
+        if (allAnswered) {
+          return true;
+        }
       }
     }
 

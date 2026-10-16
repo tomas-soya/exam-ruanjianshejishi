@@ -50,7 +50,7 @@ test('card gate rejects missing steps, invented evidence and dropped evidence wi
   assert.throws(() => parseReviewCards(JSON.stringify({ cards: [card(['E1'], { memory })] }), ['E1'], [memory]), /照抄/);
 });
 
-test('cross-batch consolidation merges repeated concepts while covering every source and ignores old text', async () => {
+test('cross-batch exact deduplication merges identical concepts without another model call', async () => {
   let calls = 0;
   const synth = new PersonalMaterialsSynthesizer({ batchSize: 1, gatewayAdapter: { chatCompletion: async ({ messages }) => {
     calls++;
@@ -62,7 +62,7 @@ test('cross-batch consolidation merges repeated concepts while covering every so
   } } });
   const result = await synth.synthesizeChapterMaterial({ chapterKey: 'obj_10_network_security', chapterName: '网络',
     answeredEvidences: [loss('q1'), loss('q2')], existingMarkdown: '- 【旧稿过时知识】无关内容' });
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
   assert.equal(result.summary.weakPointsCount, 1);
   assert.deepEqual(result.metadata.reviewCards[0].refs, ['E1', 'E2']);
   for (const label of ['待补：', '记住：', '防错：', '自测：']) assert.ok(result.markdown.includes(label));

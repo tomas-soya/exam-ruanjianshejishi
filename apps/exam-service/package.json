@@ -1,6 +1,6 @@
 {
   "name": "@ruankao/exam-service",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Windows Local Exam Backend Service with SQLite Persistence and Answer Isolation",
   "main": "src/index.js",
   "scripts": {
