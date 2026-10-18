@@ -203,6 +203,24 @@
   - **推理**：调用解析与绘制前，必须将具体操作系统实现注入到图像抽象对象中。基类 `Image` 提供了 Setter 注入方法 `public void setImp(Implementor imp)`。
   - **答案**：`image.setImp(imageImp)`（套用 [作答卡 DP-04](#作答卡-dp-04面向对象多态委托与方法调用代码填空动作卡)）。
 
+### 3.3 统考最新实战演练与真题锚点补充
+
+#### 案例 A：2024 年上半年统考真题——状态模式（State）银行账户状态转移 Java 实现
+- **业务场景**：银行账户根据余额处于不同状态（GreenState 正常、YellowState 欠费、RedState 冻结）。存取款操作会导致余额变动，并触发账户状态的流转。
+- **核心角色与解题推导**：
+  1. **环境类 (Context)**：`Account` 类持有 `private State state;` 引用，存取款时直接委托当前状态 `state.deposit(amount)` 或 `state.withdraw(amount)`；
+  2. **抽象状态角色 (State)**：声明公共操作 `deposit(double amount)`、`withdraw(double amount)` 与检查状态方法 `checkState()`；
+  3. **具体状态角色 (ConcreteState)**：
+     - 各状态类持有所属环境引用 `protected Account acc;`；
+     - 每次余额改变后，调用 `checkState()` 判断余额阈值（`balance >= 0` 转 GreenState，`-1000 <= balance < 0` 转 YellowState，`balance < -1000` 转 RedState），通过 `acc.setState(new ConcreteState(this))` 动态替换环境持有的状态对象。
+
+#### 案例 B：2023 年下半年统考真题——命令模式（Command）公告栏系统 Java 实现
+- **业务场景**：系统通过图形界面发布或删除公告信息。为解耦菜单/按钮与具体公告板后台操作，引入命令模式。
+- **核心角色与解题推导**：
+  1. **命令接口 (Command)**：声明 `public void execute();` 执行入口；
+  2. **具体命令类 (ConcreteCommand)**：`PostNoticeCommand` 与 `DeleteNoticeCommand`，内部聚合了真正执行业务的接收者 `NoticeBoard` 引用，在 `execute()` 中调用 `noticeBoard.post(msg)` 或 `noticeBoard.delete(id)`；
+  3. **调用者 (Invoker)**：界面按钮或菜单，持有抽象 `Command` 接口对象，在用户点击时触发 `command.execute()`，彻底与具体公告板解耦。
+
 ---
 
 ## 4. 易错陷阱与交卷自检清单

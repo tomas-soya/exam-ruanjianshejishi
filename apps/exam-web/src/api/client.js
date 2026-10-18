@@ -278,10 +278,12 @@
     // 3. Wrong Questions & Review Queue
     async listWrongQuestions(params = {}) {
       const query = new URLSearchParams();
+      if (params.paperId) query.set('paperId', params.paperId);
+      if (params.questionType) query.set('questionType', params.questionType);
       if (params.chapter) query.set('chapter', params.chapter);
       if (params.mastered !== undefined) query.set('mastered', String(params.mastered));
-      if (params.limit) query.set('limit', String(params.limit));
-      if (params.offset) query.set('offset', String(params.offset));
+      if (params.limit !== undefined && params.limit !== null) query.set('limit', String(params.limit));
+      if (params.offset !== undefined && params.offset !== null) query.set('offset', String(params.offset));
       const qs = query.toString() ? `?${query.toString()}` : '';
       return this._request(`/wrong-questions${qs}`);
     }

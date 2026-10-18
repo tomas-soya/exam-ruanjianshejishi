@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 
 const {
@@ -521,20 +522,36 @@ class ExamService {
     if (mode === 'wrong_questions') {
       let qids = questionIds;
       if (!Array.isArray(qids) || qids.length === 0) {
-        const wrongList = wrongQuestionsRepo.listWrongQuestions(this.db, { mastered: false });
+        const wrongList = wrongQuestionsRepo.listWrongQuestions(this.db, { paperId, mastered: false });
         qids = wrongList.map(w => w.questionId);
       }
 
       const totalQuestions = qids.length;
-      return sessionRepo.createSession(this.db, {
+      const session = sessionRepo.createSession(this.db, {
         sessionMode: 'wrong_questions',
         practiceMode: safePracticeMode,
-        paperId: null,
+        paperId: paperId || null,
         chapter: null,
         title: title || '错题强化训练',
         totalQuestions,
         maxScore: totalQuestions
       });
+
+      if (qids.length > 0) {
+        const insertAns = this.db.prepare(`
+          INSERT OR IGNORE INTO exam_answers (
+            id, session_id, question_id, question_type, user_answer_json,
+            is_correct, score, max_score, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, '""', NULL, NULL, 1.0, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        `);
+        for (const qid of qids) {
+          const rawQ = this.bankLoader.getRawQuestion(qid);
+          const qType = (rawQ && rawQ.type === 'case') ? 'case' : 'objective';
+          insertAns.run(crypto.randomUUID(), session.id, qid, qType);
+        }
+      }
+
+      return session;
     }
   }
 
@@ -559,7 +576,7 @@ class ExamService {
           if (q) questions.push(q);
         }
       } else {
-        const wrongList = wrongQuestionsRepo.listWrongQuestions(this.db, { mastered: false });
+        const wrongList = wrongQuestionsRepo.listWrongQuestions(this.db, { paperId: session.paperId, mastered: false });
         for (const w of wrongList) {
           const q = this.bankLoader.getSanitizedQuestion(w.questionId);
           if (q) questions.push(q);
@@ -570,11 +587,13 @@ class ExamService {
     // Strict security check: ensure pre-submit questions NEVER leak answers
     assertStrictAnswerIsolation(questions);
 
-    // Load saved drafts map
+    // Load saved drafts map (ignore unpopulated placeholder rows)
     const answerRecords = answerRepo.getAnswersForSession(this.db, sessionId);
     const answers = {};
     for (const record of answerRecords) {
-      answers[record.questionId] = record.userAnswer;
+      if (record.userAnswer !== '' && record.userAnswer !== null && record.userAnswer !== undefined && record.userAnswer !== '""') {
+        answers[record.questionId] = record.userAnswer;
+      }
     }
 
     return {

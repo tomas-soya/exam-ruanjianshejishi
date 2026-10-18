@@ -553,14 +553,16 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
 
       // Route 12: List wrong questions
       if (pathname === '/api/v1/wrong-questions' && method === 'GET') {
+        const paperId = query.paperId || query.paper_id;
+        const questionType = query.questionType || query.question_type;
         const chapter = query.chapter;
         let mastered = undefined;
         if (query.mastered === 'true') mastered = true;
         if (query.mastered === 'false') mastered = false;
-        const limit = query.limit ? parseInt(query.limit, 10) : 50;
+        const limit = query.limit !== undefined ? (parseInt(query.limit, 10) || null) : null;
         const offset = query.offset ? parseInt(query.offset, 10) : 0;
 
-        const list = examService.listWrongQuestions({ chapter, mastered, limit, offset });
+        const list = examService.listWrongQuestions({ paperId, questionType, chapter, mastered, limit, offset });
         sendSuccess(res, list);
         return;
       }

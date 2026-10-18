@@ -50,7 +50,7 @@
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "ebd264806706b3c610dfbac121af500c6e9f45b3372d8cfb6221c384ce3d2178"
+      "sha256": "b2fcc4d245cc3ed9df37f8aead125b5989c3f629bb497a91147f2bf4984fa2e4"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -70,7 +70,7 @@
     },
     {
       "path": "apps/exam-contracts/package.json",
-      "sha256": "64ec47588c6cf523fc07ef171cf291e31a7941aee55294bd2faaae718a274f27"
+      "sha256": "6c9547f09501858437d70a2b5cb62b0fac3350e1ac43e20a8332670af3ba2273"
     },
     {
       "path": "apps/exam-contracts/src/index.ts",
@@ -94,7 +94,7 @@
     },
     {
       "path": "apps/exam-llm/package.json",
-      "sha256": "7470c855d43bcae226361780b929208f1af1925177613ce72936710d6db9bf79"
+      "sha256": "dd61f81b4d52b03a7919f9e62517182b3b28338a7a08f731f98f1417e1d58b24"
     },
     {
       "path": "apps/exam-llm/src/adapter/env-loader.js",
@@ -166,7 +166,7 @@
     },
     {
       "path": "apps/exam-service/package.json",
-      "sha256": "6b2dafb2cff10395fced3bb10281f503db15fd3f9d15cfc6d375cd1660d09a83"
+      "sha256": "5df159f79002c9ff712f9bcfbe4fc9943f5c2877c5d4a1c923bbbcf7da2b19cd"
     },
     {
       "path": "apps/exam-service/src/bank/identifier-map.js",
@@ -254,7 +254,7 @@
     },
     {
       "path": "apps/exam-service/src/db/wrong-questions-repository.js",
-      "sha256": "04a17c373ba643d9b583fc8b22e97530afb1eaecc982b2ac32ca4796ec5afa56"
+      "sha256": "a4232edc5c9042bf076b7c2027c0ce99079dab3d186646389d657aab11beb688"
     },
     {
       "path": "apps/exam-service/src/index.js",
@@ -274,11 +274,11 @@
     },
     {
       "path": "apps/exam-service/src/server.js",
-      "sha256": "276f3cbf6d45527cc5426f401dffd06db56a44834ba3f7d47292a9b7af960a0c"
+      "sha256": "d0f060e32b1ed6535b4f9429b542e032daffe5e6dfe0febc57e0c6bc8f1b454f"
     },
     {
       "path": "apps/exam-service/src/service/exam-service.js",
-      "sha256": "5f8cccbfb4f2796e289c5c8da06c50c8ae9f8d63dc352a92a4371ef0ceae2a28"
+      "sha256": "bb153ce6b94840e6f288e6cda12ee9fad5f4c3a91dd725a487ca65213c544f02"
     },
     {
       "path": "apps/exam-service/src/unified-server.js",
@@ -290,11 +290,11 @@
     },
     {
       "path": "apps/exam-web/package.json",
-      "sha256": "4a9e7a18643e0db29da9ff39cec79bc45f3f51670c38b10a15c86441dbe53ef7"
+      "sha256": "6998e5f2afa944a297b2e9007534371f8b217b94f451db043f3916a91e5bc3c9"
     },
     {
       "path": "apps/exam-web/public/css/style.css",
-      "sha256": "c6e6ce1065ee7a1363af3541bc4bfefc742893cd29adcd122146ad53ca1d3793"
+      "sha256": "19ce646d0718c3baf39216730b61b2a9afce484d421e002300fe56d3a60a7b52"
     },
     {
       "path": "apps/exam-web/public/index.html",
@@ -318,11 +318,11 @@
     },
     {
       "path": "apps/exam-web/src/App.js",
-      "sha256": "3d00ae2027ead43cd4a015eebf0b4d609c6e7415f43afe41ada649a63514e7fe"
+      "sha256": "0eca3e6ce8862fef940a601309babfca3557d86e79f632dcddca6a3664e42ede"
     },
     {
       "path": "apps/exam-web/src/api/client.js",
-      "sha256": "6d1cd5501a7135258adfc35b39efabbbd3e96a1576fd014c3e6d1dc3d8afca3c"
+      "sha256": "28c409b2e096f3caf537574962cd35e36c1fa0704bb26734d0bcc538887a8f2c"
     },
     {
       "path": "apps/exam-web/src/components/AnswerSheet.js",
@@ -354,7 +354,7 @@
     },
     {
       "path": "apps/exam-web/src/components/HistoryView.js",
-      "sha256": "ec20bbcb9afc5ad9a0d94b005d2ae6f705c543ab2e6aef73e86c734e58485d37"
+      "sha256": "db9207b6d0ac87ad27b58c370e8e139c9c0bb40900f365f00e0c30e71b0b0410"
     },
     {
       "path": "apps/exam-web/src/components/ImageModal.js",
@@ -390,7 +390,7 @@
     },
     {
       "path": "apps/exam-web/src/components/WrongQuestionsView.js",
-      "sha256": "03f6fe81fb6772010cfdd733609d9136b91565656fbbd58b27150e37de27b26f"
+      "sha256": "97048a5adc154b1ef3e3080ea207d97e2246e1cd57c8415e34efcc338ba5dfce"
     },
     {
       "path": "apps/exam-web/src/index.js",
@@ -402,11 +402,11 @@
     },
     {
       "path": "package-lock.json",
-      "sha256": "82e9422ba9898c951adc809b4268e65f695b6635497d8ba662f924c25b281d24"
+      "sha256": "eadc1447181694b52bed0f2d523481a852413b31f482ee23f3c01bed0554d865"
     },
     {
       "path": "package.json",
-      "sha256": "1d2e3978246f4c1789007ba3f676dbaccb97cb69403cc1baae9859d8e79524b3"
+      "sha256": "7f65e9eb88560ac220762113ed14800a8ebfd66e246134aed6472d7df10822a8"
     },
     {
       "path": "scripts/build-portable.mjs",
@@ -506,19 +506,19 @@
     },
     {
       "path": "软件设计师复习材料/案例题/01-结构化分析与设计.md",
-      "sha256": "df6dd6276468b49003ef5d56ede2638b8bf8ec4bae09c374d356c9f51cc309a3"
+      "sha256": "b461921593d5f6af0b7704231be453d2d5d8786597f541666f10c24c1f857dd0"
     },
     {
       "path": "软件设计师复习材料/案例题/02-面向对象设计模式与Java实现.md",
-      "sha256": "902881d7e5d21c7d2cf109ef4f720528395970484c2eeb0d8dab4f95265a8d90"
+      "sha256": "9105d4976f59ba984e68278041754196bd014a08d23dfab301e87419b2730909"
     },
     {
       "path": "软件设计师复习材料/案例题/03-UML类图与面向对象分析.md",
-      "sha256": "f97d396b407601a0df8aac88425947265fcba728f1502236cd14f83b2589aab3"
+      "sha256": "9d030a12ecede193cb2f99675e23846a4ed5c96db269f8b0ba486f3a090901ba"
     },
     {
       "path": "软件设计师复习材料/案例题/04-数据库设计与关系模式.md",
-      "sha256": "c9547acba3f2595dceb85b636abb84ec3b24425e85f477db49dc07be5d233d83"
+      "sha256": "f4be536b078fc947989ee09087eb01bbc5b5c47bf2176aceadf5cfe1ef9dce80"
     },
     {
       "path": "软件设计师复习材料/案例题/05-UML用例图与活动图.md",
@@ -534,7 +534,7 @@
     },
     {
       "path": "软件设计师复习材料/案例题/08-算法设计与分析.md",
-      "sha256": "126a229b1bc5fa0896b66b0c52a19ddfe250041dc848cef33c9d88b54f3d2089"
+      "sha256": "715a9c61730744a77b5788985d26c5730dbf76181e10b3c5d7d56074eb04d63a"
     },
     {
       "path": "软件设计师复习材料/案例题/assets/历年真题/2016-上半年/q1_ans_fig1.jpg",
@@ -1009,12 +1009,72 @@
       "sha256": "016e9169b1c1917d3d4116cd7bb87acad8e62665a3b3cbedc70dd6f674d2c505"
     },
     {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年-malinkang/CGd4qVc2ye-8ffa8053d66a.png",
+      "sha256": "075567e074f9726c295872b293a3fdc06035295395a36975728be894cb1d037e"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年-malinkang/E9J33fH5Dq-b0f11de0de85.png",
+      "sha256": "ff17eff0d027ab84f91f1a7600266bf1c0b41abe9ae9046a9f237cc4c0b39cc6"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年-malinkang/Jxa3WK7sQh-aac6615b7c49.png",
+      "sha256": "052b2b0ebfdc0d009b49f89f4925c12e60c09d6a8abca33bb31c99e552bd2c28"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年-malinkang/RC86pUcHYe-f49834bb5c2d.png",
+      "sha256": "df2ead10c0fc718b953496468d9f8f0ef18d70b004bf9cf509e0f1bb89f0c3cd"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年-malinkang/nRYrHNdVw7-4c5982f74916.png",
+      "sha256": "89e4bde39099d1ce1159c197855d5cef62738fe93c3c83bb167a9c4084e521d8"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年-malinkang/uFjnd3BHfq-65bf36201523.png",
+      "sha256": "301ae8e1a7ff08014b5d4317303b15011b47d361e929e08de06a8d80146ca9e6"
+    },
+    {
       "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年/q1_fig1.png",
       "sha256": "58d791899c90953c950b1f96bf8622164045e1ee371369bda3a47e844c3ce5b1"
     },
     {
       "path": "软件设计师复习材料/案例题/assets/历年真题/2023-下半年/q1_fig2.png",
       "sha256": "a96c8bdbf3003626d264b4ff535ce3551917d5a80e0081291c927fd5d49cd8ac"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/Cd37GAnh72-5f588548f295.png",
+      "sha256": "b521064ac8cbf73ae9b1a974a6d798ec10636c67922af70d9408ad09daa6d47e"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/LJWnzuyeZ9-426ff7156a0f.png",
+      "sha256": "8dc8079eab061bd9421fd665d68d07b62767934b55cb9b9cf503dd50f929d0be"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/PPcByjq723-52bb8f8a9f35.png",
+      "sha256": "c9ce25d3bd3f88d1d88c1e43e6ed8c669aad1b5d321e49f7dc6be934260bcbc0"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/ZMbJhJGfQ9-37240a278a9a.png",
+      "sha256": "de3b96051716ee6f8ddd6f6016b35ecb35d48f04d1b5a4d3016efc8fe605abef"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/caBqdDHw3r-283c49b35f15.png",
+      "sha256": "505a7263535ab1d4b75b588b518abc9590a8645273d4be37daaccf747da049f0"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/cqah78X46A-c69db87df2c7.png",
+      "sha256": "60a627c5e014708dae4eeeff953e96d7480f4ee60db176ff698ce92e13a795bc"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/d2bgdNfMYs-37babd48a15c.png",
+      "sha256": "5b35eb2c2fa1604bbd114bb3b14c389840b7114915fc74a53ecc7f9a1ccb4243"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/hzbwZk6KZ6-54321feddd3f.png",
+      "sha256": "b2a2dfda5302f8a22a67a0702ad6f5cb29dba15fc8b7cb478a5ec73a980fc893"
+    },
+    {
+      "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年-malinkang/r82txRfdZW-e200d22f442a.png",
+      "sha256": "f615382e0818b8d70ebe4d31f4699c604d815c5ded6e5ef3875215614f517948"
     },
     {
       "path": "软件设计师复习材料/案例题/assets/历年真题/2024-上半年/q1_fig1.jpg",
@@ -1138,7 +1198,7 @@
     },
     {
       "path": "软件设计师复习材料/软件设计师复习材料-案例题.md",
-      "sha256": "def218aea92b0ac15f00d9ec244b3dc7df56155c04522daea88726fd244d35e1"
+      "sha256": "03baccde42c082a68523630c929b1199b4765b48a991598bb83c1ceb3c3f9675"
     },
     {
       "path": "软件设计师复习材料/软件设计师复习材料-选择题.md",

@@ -61,14 +61,17 @@
       }
     };
 
-    const filteredSessions = sessions.filter(s => {
+    // 未作答的记录不加入答题历史
+    const answeredSessions = sessions.filter(s => (s.answeredCount || 0) > 0);
+
+    const filteredSessions = answeredSessions.filter(s => {
       if (filterStatus === 'in_progress') return s.status === 'in_progress';
       if (filterStatus === 'submitted') return s.status === 'submitted';
       return true;
     });
 
-    const inProgressCount = sessions.filter(s => s.status === 'in_progress').length;
-    const submittedCount = sessions.filter(s => s.status === 'submitted').length;
+    const inProgressCount = answeredSessions.filter(s => s.status === 'in_progress').length;
+    const submittedCount = answeredSessions.filter(s => s.status === 'submitted').length;
 
     const formatModeTag = (mode) => {
       switch (mode) {
@@ -112,7 +115,7 @@
         div({ className: 'view-title-group' },
           h2({ className: 'view-title' }, '答题历史与模考记录'),
           span({ className: 'view-subtitle' },
-            `共记录 ${sessions.length} 次练习（${inProgressCount} 个未完成草稿，${submittedCount} 次已交卷模考）`
+            `共记录 ${answeredSessions.length} 次练习（${inProgressCount} 个未完成草稿，${submittedCount} 次已交卷模考）`
           )
         ),
         div({ className: 'view-actions' },
@@ -130,7 +133,7 @@
           button({
             className: `btn-filter-tab ${filterStatus === 'all' ? 'active' : ''}`,
             onClick: () => setFilterStatus('all')
-          }, `全部记录 (${sessions.length})`),
+          }, `全部记录 (${answeredSessions.length})`),
           button({
             className: `btn-filter-tab in-progress ${filterStatus === 'in_progress' ? 'active' : ''}`,
             onClick: () => setFilterStatus('in_progress')

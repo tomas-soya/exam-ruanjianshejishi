@@ -74,10 +74,12 @@ function setMastered(db, questionId, mastered) {
 
 /**
  * Lists wrong questions with optional filtering.
+ * Supports filtering by paperId, questionType, chapter, and mastery state.
+ * Does not restrict maximum wrong questions unless explicit limit is provided.
  * @param {import('node:sqlite').DatabaseSync} db 
  * @param {object} [options]
  */
-function listWrongQuestions(db, { chapter, mastered, limit = 50, offset = 0 } = {}) {
+function listWrongQuestions(db, { paperId, questionType, chapter, mastered, limit = null, offset = 0 } = {}) {
   let sql = `
     SELECT
       id, question_id AS questionId, paper_id AS paperId,
@@ -90,6 +92,14 @@ function listWrongQuestions(db, { chapter, mastered, limit = 50, offset = 0 } = 
   `;
   const params = [];
 
+  if (paperId) {
+    sql += ' AND paper_id = ?';
+    params.push(paperId);
+  }
+  if (questionType) {
+    sql += ' AND question_type = ?';
+    params.push(questionType);
+  }
   if (chapter) {
     sql += ' AND chapter = ?';
     params.push(chapter);
@@ -99,8 +109,15 @@ function listWrongQuestions(db, { chapter, mastered, limit = 50, offset = 0 } = 
     params.push(mastered ? 1 : 0);
   }
 
-  sql += ' ORDER BY mastered ASC, wrong_count DESC, last_wrong_at DESC LIMIT ? OFFSET ?';
-  params.push(limit, offset);
+  sql += ' ORDER BY mastered ASC, wrong_count DESC, last_wrong_at DESC';
+
+  if (limit !== null && limit !== undefined && limit > 0) {
+    sql += ' LIMIT ? OFFSET ?';
+    params.push(limit, offset || 0);
+  } else if (offset > 0) {
+    sql += ' LIMIT -1 OFFSET ?';
+    params.push(offset);
+  }
 
   const rows = db.prepare(sql).all(...params);
   return rows.map((r) => ({

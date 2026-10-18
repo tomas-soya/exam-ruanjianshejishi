@@ -166,7 +166,9 @@
       try {
         const res = await client.listSessions();
         const list = Array.isArray(res) ? res : (res && res.data ? res.data : []);
-        setSessions(list);
+        // 未作答的记录不加入答题历史
+        const answeredList = list.filter(s => (s.answeredCount || 0) > 0);
+        setSessions(answeredList);
       } catch (e) {
         console.warn('Failed to load sessions:', e);
       } finally {
@@ -238,7 +240,7 @@
         });
 
         let sessionQuestions = [];
-        if (paperId) {
+        if (mode === 'paper' && paperId) {
           const paperDetail = await client.getPaper(paperId);
           sessionQuestions = paperDetail.questions || [];
         } else {
@@ -830,11 +832,14 @@
         activeTab === 'wrong_questions' && React.createElement(WrongQuestionsView, {
           wrongQuestions,
           chapters,
+          papers,
           onToggleMastered: handleToggleMastered,
-          onStartWrongPractice: (questionIds) => startNewSession({
+          onStartWrongPractice: (questionIds, paperInfo) => startNewSession({
             mode: 'wrong_questions',
+            paperId: paperInfo?.id || null,
+            subject: paperInfo?.subject || null,
             questionIds,
-            title: `【错题再练】精选 ${questionIds.length} 题特训`
+            title: paperInfo ? `【错题再练】${paperInfo.title || paperInfo.id} (${questionIds.length}题)` : `【错题再练】精选 ${questionIds.length} 题特训`
           })
         }),
 
