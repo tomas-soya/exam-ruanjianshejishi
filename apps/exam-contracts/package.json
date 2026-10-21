@@ -1,6 +1,6 @@
 {
   "name": "@ruankao/exam-contracts",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Shared TypeScript contracts and OpenAPI schemas for Ruankao Exam Web Client and Service",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

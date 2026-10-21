@@ -50,7 +50,7 @@
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "b2fcc4d245cc3ed9df37f8aead125b5989c3f629bb497a91147f2bf4984fa2e4"
+      "sha256": "2c4aae6e1ce64c20cc654f62d292fdd60d5369b93046913ae9cd73dc0a3f00eb"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -70,7 +70,7 @@
     },
     {
       "path": "apps/exam-contracts/package.json",
-      "sha256": "6c9547f09501858437d70a2b5cb62b0fac3350e1ac43e20a8332670af3ba2273"
+      "sha256": "def9d336a5d1a972846043ea2efd31bfb442d3ea41cd494974bc422fa38a7e5a"
     },
     {
       "path": "apps/exam-contracts/src/index.ts",
@@ -94,7 +94,7 @@
     },
     {
       "path": "apps/exam-llm/package.json",
-      "sha256": "dd61f81b4d52b03a7919f9e62517182b3b28338a7a08f731f98f1417e1d58b24"
+      "sha256": "a215d31ad454a104bdd353e228f56889fdd4f6005fdf7213938544d9d42f252c"
     },
     {
       "path": "apps/exam-llm/src/adapter/env-loader.js",
@@ -166,7 +166,7 @@
     },
     {
       "path": "apps/exam-service/package.json",
-      "sha256": "5df159f79002c9ff712f9bcfbe4fc9943f5c2877c5d4a1c923bbbcf7da2b19cd"
+      "sha256": "9d6cae5e9c49c6ddc4ba0b3ed2d90120f7ab6aff177136dc4115984e33dace4d"
     },
     {
       "path": "apps/exam-service/src/bank/identifier-map.js",
@@ -290,7 +290,7 @@
     },
     {
       "path": "apps/exam-web/package.json",
-      "sha256": "6998e5f2afa944a297b2e9007534371f8b217b94f451db043f3916a91e5bc3c9"
+      "sha256": "bb014d77d9b52e1b5088bc87154372e03d4076a24fab16ee389c0aab005e3822"
     },
     {
       "path": "apps/exam-web/public/css/style.css",
@@ -402,11 +402,11 @@
     },
     {
       "path": "package-lock.json",
-      "sha256": "eadc1447181694b52bed0f2d523481a852413b31f482ee23f3c01bed0554d865"
+      "sha256": "6ae2ad54cacae2a9cc934e6d5f3efbed6a73e6f35915fdc40d53d395fabb3834"
     },
     {
       "path": "package.json",
-      "sha256": "7f65e9eb88560ac220762113ed14800a8ebfd66e246134aed6472d7df10822a8"
+      "sha256": "8728f5973896c562a61ee6da92de611c3e76de717cfd77c79bf29b8ac815697f"
     },
     {
       "path": "scripts/build-portable.mjs",
@@ -4758,7 +4758,7 @@
     },
     {
       "path": "题库/questions/objective/oq-0b100d0c4e188bbc17e8.json",
-      "sha256": "49130593557ad7010c70b9b0578146da3e726ace2734c7791fab677b6d8a4fe1"
+      "sha256": "d7d4fc25a64ee562fbe7fff8ec4ce0813f36acc2bd7e755246b2f78c62557ec0"
     },
     {
       "path": "题库/questions/objective/oq-0b40ee51d905e88c14d3.json",
@@ -4866,7 +4866,7 @@
     },
     {
       "path": "题库/questions/objective/oq-0f9e74a269c1495cd3d2.json",
-      "sha256": "2170402c1ca614e89914b3729df3d88fd6fb5a4f14f00f6e9f25a1efb5b4c81d"
+      "sha256": "4d526a59c4431038bf4e24d1cadd9c88dbb48a0b310257c49c48ca7e962e70b6"
     },
     {
       "path": "题库/questions/objective/oq-0fc279126e568d749ad7.json",
@@ -5074,7 +5074,7 @@
     },
     {
       "path": "题库/questions/objective/oq-18f11bc2ea209f0da29c.json",
-      "sha256": "e0be945f7d1da3129d633030c67f011d8de6221861ade87fda2d31dbd6d17631"
+      "sha256": "5460c21faba6a72c59f352ec3775374b68a34bc4f1ba348c930809570610a4b3"
     },
     {
       "path": "题库/questions/objective/oq-191478922bdbb1f9ba45.json",
@@ -5286,11 +5286,11 @@
     },
     {
       "path": "题库/questions/objective/oq-212ece953f9220ace36e.json",
-      "sha256": "cce6d61bf9e888860f67f0f420bd1bf0642968c1cc05d66922082c0c64ff3e1b"
+      "sha256": "3225b075a0d12456db55071c803290cbb72c7e6896e9cc8da29d11902a3ad28f"
     },
     {
       "path": "题库/questions/objective/oq-214711d71630ee1592b2.json",
-      "sha256": "1364239c1c6a123a0674cea8eeee119df199717d317a56fbf2d517b69269124b"
+      "sha256": "08d94e71d6eb95c1d7b9788a941a4c69c1344afe37957e173bfe20837176a8cc"
     },
     {
       "path": "题库/questions/objective/oq-214f64fe1d1d462931b6.json",
@@ -5818,7 +5818,7 @@
     },
     {
       "path": "题库/questions/objective/oq-34241e5182df963b7259.json",
-      "sha256": "1a8e243e2213a96df8b0c3dbda65847b881945db0a0c8ef9588fcbebd6afe441"
+      "sha256": "423830f21d91d8a7e88f13e63faf3178e576e974068636131ff5a4222a0307a1"
     },
     {
       "path": "题库/questions/objective/oq-343e5de4303915561847.json",
@@ -5962,7 +5962,7 @@
     },
     {
       "path": "题库/questions/objective/oq-39b7ac8054217ce74b58.json",
-      "sha256": "164cee0cfffc78f98a2801911a9fbeb220191f8a3a37f6780e8cd127287534c4"
+      "sha256": "f769e53cf0e7d4f084a61067d04acab1d7f7246f32b54fb87b0f4610536efa70"
     },
     {
       "path": "题库/questions/objective/oq-39c437f277e34facab2f.json",
@@ -6002,7 +6002,7 @@
     },
     {
       "path": "题库/questions/objective/oq-3b7b53e03d9539d0880f.json",
-      "sha256": "68087bf4e864296338177c3d1b4395037aa559168fbdf12677ed959ada979110"
+      "sha256": "ec7cab802ac61bdfe2e2d8736614abf0bc5375d840693e5a89d3c78ba9c5f490"
     },
     {
       "path": "题库/questions/objective/oq-3ba74d939dbd9138eb86.json",
@@ -6494,7 +6494,7 @@
     },
     {
       "path": "题库/questions/objective/oq-4fcf4ebb4b07691090cc.json",
-      "sha256": "f5c7c88b82c80df3433289565bddee50397f8f6d5615f7dd3fd6e657a43c0012"
+      "sha256": "4cfab85cb1c19c2ee2d312111dd9787e6764b7e0f0311771245a6ebde7204d67"
     },
     {
       "path": "题库/questions/objective/oq-4fe7bbe98ec81d28a31d.json",
@@ -6678,7 +6678,7 @@
     },
     {
       "path": "题库/questions/objective/oq-579f06e6a2c827511998.json",
-      "sha256": "30c31a3821d38a0e8f849c35b1f25ad79a800caae0cba67397088113d21bed33"
+      "sha256": "de4455161026e4ac331c0a6c52782d3c82572b45447a8b06c6477391ed8bebf6"
     },
     {
       "path": "题库/questions/objective/oq-57f0f312394241641fa6.json",
@@ -7010,7 +7010,7 @@
     },
     {
       "path": "题库/questions/objective/oq-65a148554726414a6ae5.json",
-      "sha256": "3a0b2a60449142a836d48559c1417bc1cd06bc80135dfd97c208b9cd738ae731"
+      "sha256": "eed186fc410f10c7e13955043d04f647d6523f52cc2fb62edfe0f177aa8e0b5c"
     },
     {
       "path": "题库/questions/objective/oq-65c804e7fadbe0264cfc.json",
@@ -7274,7 +7274,7 @@
     },
     {
       "path": "题库/questions/objective/oq-709619d04ff24197300c.json",
-      "sha256": "c2af8924832568e3e57b3b92a0b6fa243a5ab21f87b22dd1624ea71bd097e42f"
+      "sha256": "5b84a4b46ed2ffddc45105ae0402bf7c0109e309336c98933f713ff7ea76a022"
     },
     {
       "path": "题库/questions/objective/oq-70d368d78755ea7864cb.json",
@@ -7334,11 +7334,11 @@
     },
     {
       "path": "题库/questions/objective/oq-733416fc02f5b8818771.json",
-      "sha256": "340f533d95431ce03f2ca0c6d094583d5188c3d4b0df6a3ec8a4f0f33a7d9ef9"
+      "sha256": "52d9313e7c79855a8a1634be1015cfa3620ae1c2c1fe6798a00b5418d0f89c8a"
     },
     {
       "path": "题库/questions/objective/oq-73360ef8806140b3a095.json",
-      "sha256": "b31c8030e9f059685b5a8d02ec8b46b40753624ef3618868433ce4746f381374"
+      "sha256": "7fb0093d75221803292e93f706dc5b773b08ff743ea4028d5356454331b10dea"
     },
     {
       "path": "题库/questions/objective/oq-733a854ac31ec687b585.json",
@@ -7526,7 +7526,7 @@
     },
     {
       "path": "题库/questions/objective/oq-7a42e8c1258495ad4762.json",
-      "sha256": "e70e2ba377f09769be15dcc757ce905cdddda9c3c06309b85fe66b12f207f890"
+      "sha256": "0790f51f88ec9d10492825df7ddb4f08cb832726c09e3b7631b2620c98d18c6b"
     },
     {
       "path": "题库/questions/objective/oq-7a5e0c45e13c38467082.json",
@@ -7590,7 +7590,7 @@
     },
     {
       "path": "题库/questions/objective/oq-7c495344c9f9c841f44d.json",
-      "sha256": "45f15a2b67c6116d8f1af478a932a131aa01e42939ce522660ee4ef8dfa4f646"
+      "sha256": "4b4e3876221e0f9c02e15cfd305c4f50ee046918c46254c23ff255a7c10b252f"
     },
     {
       "path": "题库/questions/objective/oq-7c6a3b556043f5f217aa.json",
@@ -8042,7 +8042,7 @@
     },
     {
       "path": "题库/questions/objective/oq-8e5326ac2fcd3f3596cc.json",
-      "sha256": "3fcb69493787893c06ef40df7f7e8f1d640792ae59a340354e4dabd53d10db75"
+      "sha256": "7f99b7da3e07fb2a3692639c6bc181f9dcb05e3cffa3eda910ce3bccf2ecf6aa"
     },
     {
       "path": "题库/questions/objective/oq-8e9a2d1b060b3573fe8b.json",
@@ -8174,7 +8174,7 @@
     },
     {
       "path": "题库/questions/objective/oq-9317092a147b46be406f.json",
-      "sha256": "36daefd5bb528388f89fc711d1e4150cbfa5ef02447872d4a5d094046a69b87e"
+      "sha256": "76ab392ea1fee85ce151c8df9855118c5f86fbe972df12eb1b49c369e5d0e194"
     },
     {
       "path": "题库/questions/objective/oq-932c8fe6f026d459ef0c.json",
@@ -8218,11 +8218,11 @@
     },
     {
       "path": "题库/questions/objective/oq-9629c7a8e5b9d1eefc73.json",
-      "sha256": "b791fe4a9c2b1fdc696eb405f0c85a3ad484364b7f17dc2870cfccc66e8f767e"
+      "sha256": "668732a38caf83d3a513863c721083d2751f2db041fe1336672f9f0569b873b3"
     },
     {
       "path": "题库/questions/objective/oq-963e72905163287fb999.json",
-      "sha256": "3102fb8a93f59533cc5a493be44f112070fa578370ac85b504f281ab1cd4374d"
+      "sha256": "e3c76454d693d7abe4741be901ee483fb458f4fedc57f89f697cc9b23a018e08"
     },
     {
       "path": "题库/questions/objective/oq-9657df9d1fb649f842ea.json",
@@ -8278,7 +8278,7 @@
     },
     {
       "path": "题库/questions/objective/oq-97b17c66817918213f98.json",
-      "sha256": "65fe06cef7873c2c8b19619a69288db94925b8666b067c6abc23ad3fa69a8dae"
+      "sha256": "df95e87e5f4f4309e2a6c40523601edc4ae7e2c002f38db9aa264e90150eb211"
     },
     {
       "path": "题库/questions/objective/oq-97f02ec9b4126709a8e1.json",
@@ -8354,7 +8354,7 @@
     },
     {
       "path": "题库/questions/objective/oq-9aae4187edddef327f0e.json",
-      "sha256": "e9c0586afb06a81adef346abf384ac647cad3412c386d9c4c1f35183eb447847"
+      "sha256": "047344a3e376de4fc99b222073d4ba2ebdb53d9d690d3f49adda5ebae58f9a3a"
     },
     {
       "path": "题库/questions/objective/oq-9ad57632997e2bc7f4ff.json",
@@ -8398,7 +8398,7 @@
     },
     {
       "path": "题库/questions/objective/oq-9cae1f0222dfb76002b2.json",
-      "sha256": "e82786db5298aed03f63642c09dad8a6e9fea412421cd5e4aa257df895e98381"
+      "sha256": "dbae14921a103a9ed773870aed29a19ade381cbc011409853625c4f8de4d0274"
     },
     {
       "path": "题库/questions/objective/oq-9cb5f105e1ed6ab6e919.json",
@@ -8502,7 +8502,7 @@
     },
     {
       "path": "题库/questions/objective/oq-a113d202f5a9caab5790.json",
-      "sha256": "6f899c91b7b8b8591f1805d2953b99a2098bdf7d5b2d3ef979455e64b44d68d1"
+      "sha256": "5491714635806fb3f2e3abb8ec06016c4d7d336205ba48e90189998feb588e9e"
     },
     {
       "path": "题库/questions/objective/oq-a123603b2554c022c8d5.json",
@@ -9018,7 +9018,7 @@
     },
     {
       "path": "题库/questions/objective/oq-b885b841ebd88c504583.json",
-      "sha256": "943af5648bdbcabbbb581d7f6d637ef42259aa00748051023841dfdc6954afa2"
+      "sha256": "65fba0918f5f25d70286bde1cdec3a8811baae686095825a313f76923f93c638"
     },
     {
       "path": "题库/questions/objective/oq-b8e356dfb8877338c34f.json",
@@ -9590,7 +9590,7 @@
     },
     {
       "path": "题库/questions/objective/oq-d10aaeae72746cc8f4fd.json",
-      "sha256": "ca9feec3a3f51673faa4d496adeaf819c65cb10b8ab7c194362f6b16a9074d0f"
+      "sha256": "2a68bce26620c35ae27a3e74e1039c52225133ce8b5a44624f320c3d5c74be49"
     },
     {
       "path": "题库/questions/objective/oq-d10eb4fe14621d85fecf.json",
@@ -9738,7 +9738,7 @@
     },
     {
       "path": "题库/questions/objective/oq-d80d8980339359c466a6.json",
-      "sha256": "ab46be423a6c7832573297b812505d5cab5d78ce9f291c32eca52023562b3cb9"
+      "sha256": "fbde49bed3d6db9f098a81713d5f3e81dc2c04a9abcf7ad9850582f32564e039"
     },
     {
       "path": "题库/questions/objective/oq-d84537200f595f82c30c.json",
@@ -10042,11 +10042,11 @@
     },
     {
       "path": "题库/questions/objective/oq-e6705e463102be4d83b7.json",
-      "sha256": "b2679a5bbc179262f9f9b467e26102754cbc62a94c574270fb81d9a8bb485ccc"
+      "sha256": "70b918e4fed0b60b62188030c47000e662cf91de1143677159a14b9ece33be2b"
     },
     {
       "path": "题库/questions/objective/oq-e69e3927b10a392255c6.json",
-      "sha256": "cf2317e66634811c91627065211e2eedbc5727084a1188ff15c0c02ca8a39fea"
+      "sha256": "2d393b3e97ca0a6d0d25b15a33b4b60009735714d9d4e9ed9b33295cb2aca749"
     },
     {
       "path": "题库/questions/objective/oq-e6af0e02f174f52fbb62.json",
@@ -10082,7 +10082,7 @@
     },
     {
       "path": "题库/questions/objective/oq-e7955aea2caf11076e1b.json",
-      "sha256": "2221bee428f599451c5f08e11d69a8e675234318eb309bff74b3a044fce5c34f"
+      "sha256": "d87e74bd523e82246000eab9516bba663afd00620aadc0088cd61896c65b262c"
     },
     {
       "path": "题库/questions/objective/oq-e7cbf73bce6ccb754b1f.json",
@@ -10506,7 +10506,7 @@
     },
     {
       "path": "题库/questions/objective/oq-f930537a805adc659722.json",
-      "sha256": "969a9f0a36e666a1d540abded7fd469e8c5cfe1b75a13c2ffcd0dfbcf581d244"
+      "sha256": "65eed8311ee996036dc8e7d76160cf9f96ba5301ab908bf969720a4cefd2fe0c"
     },
     {
       "path": "题库/questions/objective/oq-f937122c0fd67d6d30ec.json",
