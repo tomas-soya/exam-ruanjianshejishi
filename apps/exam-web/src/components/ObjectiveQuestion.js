@@ -51,7 +51,8 @@
     hasPrev,
     practiceMode = 'exam',
     solution = null,
-    onOpenChat
+    onOpenChat,
+    onSubmitExam
   }) {
     const [modalImage, setModalImage] = useState(null);
 
@@ -290,11 +291,22 @@
             ? (effectiveAnswer ? `标准答案：${effectiveAnswer}` : '背诵记忆中')
             : (userAnswer ? `当前已选：${userAnswer}` : '尚未作答')
         ),
-        button({
-          className: 'btn-nav next',
-          disabled: !hasNext,
-          onClick: onNext
-        }, '下一题 →')
+        hasNext
+          ? button({
+              className: 'btn-nav next',
+              onClick: onNext
+            }, '下一题 →')
+          : (onSubmitExam
+              ? button({
+                  className: 'btn-nav next btn-submit-direct',
+                  style: { backgroundColor: '#10b981', color: '#fff', borderColor: 'transparent' },
+                  onClick: onSubmitExam
+                }, '交卷并查看报告 →')
+              : button({
+                  className: 'btn-nav next',
+                  disabled: true
+                }, '下一题 →')
+            )
       ),
 
       // Image Zoom Modal

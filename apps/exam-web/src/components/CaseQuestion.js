@@ -53,7 +53,8 @@
     solution = null,
     onCheckQuestion = null,
     isChecking = false,
-    onOpenChat
+    onOpenChat,
+    onSubmitExam
   }) {
     const [modalImage, setModalImage] = useState(null);
     const [activeSubTab, setActiveSubTab] = useState(1);
@@ -309,11 +310,22 @@
         span({ className: 'nav-current-info' },
           answeredSubsCount > 0 ? `已填写 ${answeredSubsCount} 个子问` : '尚未作答'
         ),
-        button({
-          className: 'btn-nav next',
-          disabled: !hasNext,
-          onClick: onNext
-        }, '下一题 →')
+        hasNext
+          ? button({
+              className: 'btn-nav next',
+              onClick: onNext
+            }, '下一题 →')
+          : (onSubmitExam
+              ? button({
+                  className: 'btn-nav next btn-submit-direct',
+                  style: { backgroundColor: '#10b981', color: '#fff', borderColor: 'transparent' },
+                  onClick: onSubmitExam
+                }, '交卷并查看报告 →')
+              : button({
+                  className: 'btn-nav next',
+                  disabled: true
+                }, '下一题 →')
+            )
       ),
 
       // Diagram Zoom Modal

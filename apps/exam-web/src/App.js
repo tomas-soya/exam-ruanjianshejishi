@@ -926,7 +926,8 @@
                     solution: solutions[currentQuestion.id] || null,
                     onCheckQuestion: handleCheckCaseQuestion,
                     isChecking: isCheckingQuestion,
-                    onOpenChat: handleOpenChat
+                    onOpenChat: handleOpenChat,
+                    onSubmitExam: handleSubmitExam
                   })
                 : React.createElement(ObjectiveQuestion, {
                     question: currentQuestion,
@@ -942,7 +943,8 @@
                     hasPrev: currentIndex > 0,
                     practiceMode,
                     solution: solutions[currentQuestion.id] || null,
-                    onOpenChat: handleOpenChat
+                    onOpenChat: handleOpenChat,
+                    onSubmitExam: handleSubmitExam
                   })
             )
           ),

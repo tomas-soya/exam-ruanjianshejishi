@@ -194,14 +194,15 @@ class ExamService {
   }
 
   /**
-   * AC-03: Determines if a paper has an undeleted, fully-answered, submitted whole-paper session.
-   * - Objective: all paper questions must have valid non-empty answer.
+   * AC-03: Determines if a paper has an undeleted, completed and submitted whole-paper session.
+   * - Objective: paper session is submitted and has answered a substantial portion (>= 60% of total questions)
+   *   or all questions, excluding empty/abandoned partial submissions (e.g. <= 5 questions).
    * - Case (standard 6-question exam):
-   *   - Questions 1..4 (group 1..4) are compulsory, must have ALL required subquestions validly answered.
-   *   - Questions 5..6 (group 5..6) are 2-choose-1 elective, at least one elective question must have
-   *     ALL required subquestions validly answered.
-   * - Case (non-6-question exam): all paper question groups must have ALL required subquestions validly answered.
-   * - Excludes partial submissions, unsubmitted in-progress, chapter/wrong sessions, deleted sessions.
+   *   - Questions 1..4 (group 1..4) are compulsory, must be substantially answered (>= 50% of subquestions answered).
+   *   - Questions 5..6 (group 5..6) are 2-choose-1 elective, at least one elective question must be
+   *     substantially answered (>= 50% of subquestions answered).
+   * - Case (non-6-question exam): all paper question groups must be substantially answered.
+   * - Excludes partial/abandoned submissions, unsubmitted in-progress, chapter/wrong sessions, deleted sessions.
    * - Later in-progress session does not erase prior valid completion.
    * - Score/passing does not determine completion.
    */
@@ -249,8 +250,8 @@ class ExamService {
 
       if (isStandard6Case) {
         // Standard 6-question case exam:
-        // Questions 1..4 (index 0..3) are compulsory, must be fully answered.
-        // Questions 5..6 (index 4..5) are 2-choose-1 elective, at least one must be fully answered.
+        // Questions 1..4 (index 0..3) are compulsory, must be substantially answered.
+        // Questions 5..6 (index 4..5) are 2-choose-1 elective, at least one must be substantially answered.
         const compulsoryQids = expectedQids.slice(0, 4);
         const electiveQids = expectedQids.slice(4, 6);
 
@@ -284,8 +285,7 @@ class ExamService {
             return true;
           }
         }
-      } else {
-        // Non-6-question case exam or objective exam: check every expected question in paper
+      } else if (paperSubject === 'case') {
         let allAnswered = true;
         for (const qid of expectedQids) {
           const rawAns = answerMap.get(qid);
@@ -293,37 +293,41 @@ class ExamService {
             allAnswered = false;
             break;
           }
-
-          if (paperSubject === 'case') {
-            const rawQ = this.bankLoader.getRawQuestion(qid);
-            if (!this._isCaseQuestionFullyAnswered(rawQ, rawAns)) {
-              allAnswered = false;
-              break;
-            }
-          } else {
-            // Objective question
-            let isPopulated = false;
-            if (typeof rawAns === 'string') {
-              const trimmed = rawAns.trim();
-              if (trimmed.length > 0 && trimmed !== '""' && trimmed !== '{}') {
-                try {
-                  const parsed = JSON.parse(trimmed);
-                  isPopulated = typeof parsed === 'string' ? parsed.trim().length > 0 : Boolean(parsed);
-                } catch {
-                  isPopulated = true;
-                }
+          const rawQ = this.bankLoader.getRawQuestion(qid);
+          if (!this._isCaseQuestionFullyAnswered(rawQ, rawAns)) {
+            allAnswered = false;
+            break;
+          }
+        }
+        if (allAnswered) {
+          return true;
+        }
+      } else {
+        // Objective exam: check that session was submitted and answered a substantial portion (>= 60%)
+        let populatedCount = 0;
+        for (const qid of expectedQids) {
+          const rawAns = answerMap.get(qid);
+          let isPopulated = false;
+          if (typeof rawAns === 'string') {
+            const trimmed = rawAns.trim();
+            if (trimmed.length > 0 && trimmed !== '""' && trimmed !== '{}') {
+              try {
+                const parsed = JSON.parse(trimmed);
+                isPopulated = typeof parsed === 'string' ? parsed.trim().length > 0 : Boolean(parsed);
+              } catch {
+                isPopulated = true;
               }
-            } else if (rawAns !== null && rawAns !== undefined) {
-              isPopulated = true;
             }
-            if (!isPopulated) {
-              allAnswered = false;
-              break;
-            }
+          } else if (rawAns !== null && rawAns !== undefined) {
+            isPopulated = true;
+          }
+          if (isPopulated) {
+            populatedCount++;
           }
         }
 
-        if (allAnswered) {
+        const minRequired = Math.min(expectedQids.length, Math.ceil(expectedQids.length * 0.6));
+        if (populatedCount >= minRequired || (session.answeredCount >= minRequired && session.answeredCount > 0)) {
           return true;
         }
       }
@@ -345,15 +349,16 @@ class ExamService {
         parsed = trimmed;
       }
     }
-    if (typeof parsed === 'string') {
-      return expectedSubs.length === 1 && parsed.trim().length > 0;
+    if (!expectedSubs || expectedSubs.length <= 1) {
+      return isAnswerObjectPopulated(parsed);
     }
     if (typeof parsed !== 'object' || parsed === null) {
       return false;
     }
 
-    // Use the same IDs and boundaries as the displayed answer fields.
-    return expectedSubs.every(sub => isAnswerObjectPopulated(parsed[sub.id]));
+    // Substantially answered: at least half (>= 50%) of subquestions answered
+    const answeredSubs = expectedSubs.filter(sub => isAnswerObjectPopulated(parsed[sub.id])).length;
+    return (answeredSubs / expectedSubs.length) >= 0.5;
   }
 
   /**

@@ -46,11 +46,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "0ab8cf4a49208f12d470237192bb633fcc2e86b9884c84a7bef8d80aacd3741a"
+      "sha256": "3427bb3203f45dd70b9d3253f9ebd30dcb54cae4f3f8574678347ddba7f08adb"
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "2c4aae6e1ce64c20cc654f62d292fdd60d5369b93046913ae9cd73dc0a3f00eb"
+      "sha256": "f1c21b59def23eef6959e30169ca9f9d5aeb9dee81023020dcf5338e050cdcf2"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -278,7 +278,7 @@
     },
     {
       "path": "apps/exam-service/src/service/exam-service.js",
-      "sha256": "bb153ce6b94840e6f288e6cda12ee9fad5f4c3a91dd725a487ca65213c544f02"
+      "sha256": "d883ef41c406022d268f2a1ddba84afc1900d400cb050950bf71b82aa7851fb5"
     },
     {
       "path": "apps/exam-service/src/unified-server.js",
@@ -318,7 +318,7 @@
     },
     {
       "path": "apps/exam-web/src/App.js",
-      "sha256": "0eca3e6ce8862fef940a601309babfca3557d86e79f632dcddca6a3664e42ede"
+      "sha256": "af386f65da1e3a882cec8bd24a6df07ee0d59f7767f1e7164988b724fc985262"
     },
     {
       "path": "apps/exam-web/src/api/client.js",
@@ -330,7 +330,7 @@
     },
     {
       "path": "apps/exam-web/src/components/CaseQuestion.js",
-      "sha256": "a0ce2e576bf8e28b8d2aa23392559a574e10b2e2d1d9ccf86e2195fd3473af94"
+      "sha256": "c2dcb343c16153f745c3c87bea8f6732991200ebe0917db89900e91ffa1b5f42"
     },
     {
       "path": "apps/exam-web/src/components/ChapterList.js",
@@ -366,7 +366,7 @@
     },
     {
       "path": "apps/exam-web/src/components/ObjectiveQuestion.js",
-      "sha256": "6b501813f6d9142533deecc4478ad1914cade9228909235b7f9bea7f5ca33afc"
+      "sha256": "37683e82ac825549e2e5ff2684532ad8f6b5af0ac72a2db9952837acf9a1764b"
     },
     {
       "path": "apps/exam-web/src/components/PaperList.js",
@@ -402,11 +402,11 @@
     },
     {
       "path": "package-lock.json",
-      "sha256": "6ae2ad54cacae2a9cc934e6d5f3efbed6a73e6f35915fdc40d53d395fabb3834"
+      "sha256": "6741419e0904f3dd6522a2b7f0338e9ce59d13e2389ed71843bde484a3e43d4f"
     },
     {
       "path": "package.json",
-      "sha256": "8728f5973896c562a61ee6da92de611c3e76de717cfd77c79bf29b8ac815697f"
+      "sha256": "54cc0377cc6a7442f85464f1719d09058ef6aac0d81ee3eee5d36d25b7ed2c6e"
     },
     {
       "path": "scripts/build-portable.mjs",
@@ -434,7 +434,7 @@
     },
     {
       "path": "scripts/public-files.cjs",
-      "sha256": "9a4a15b975317d366d72dde9da46f6d7cdb08506dc85acc2145f2730442d988d"
+      "sha256": "75162fa63eaa612b3d34efc22002e13b1889381789a5ee1953c0de4ee4ca5cf3"
     },
     {
       "path": "scripts/update-release-manifest.cjs",
@@ -499,6 +499,10 @@
     {
       "path": "test/review-cards.test.cjs",
       "sha256": "28d6d5a75435c277ff405980d74ce90ee98a3ab3cc59827185e01d8aa664db2f"
+    },
+    {
+      "path": "软件设计师复习材料/2026年下半年软件设计师选择题（考友回忆练习版）.md",
+      "sha256": "a1077610fe5771beb764daef29d27cf88e9e1278b447a5deb41108c62736fda9"
     },
     {
       "path": "软件设计师复习材料/案例题/00-题型索引.md",
