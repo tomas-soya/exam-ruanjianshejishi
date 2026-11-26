@@ -46,7 +46,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "3427bb3203f45dd70b9d3253f9ebd30dcb54cae4f3f8574678347ddba7f08adb"
+      "sha256": "5a524583ff8919225b1cbd4cad578cae0d43c3e7fcab7b7dc83019e9ba48248d"
     },
     {
       "path": "RELEASE_NOTES.md",
@@ -62,7 +62,7 @@
     },
     {
       "path": "apps/exam-contracts/dist/index.js",
-      "sha256": "2b2099b713385113320cc51e71fcff6267b806871b0e23d55d221d1766cecddc"
+      "sha256": "52bf1cd8d5cf2008114293028c82ec0a3d5ae2af19feaa6fa9cd694aef627969"
     },
     {
       "path": "apps/exam-contracts/dist/index.mjs",
@@ -82,7 +82,7 @@
     },
     {
       "path": "apps/exam-contracts/src/openapi.ts",
-      "sha256": "e5dc8fb4eef2c5f9a54ba06550fe67f93cf562fb8e23e7aed91e45ee0c0e0382"
+      "sha256": "bb7b78a8f78bff9cbb6e0f2571d5bff9402165551262006c495089367e51be7b"
     },
     {
       "path": "apps/exam-contracts/src/scoring.ts",
@@ -90,7 +90,7 @@
     },
     {
       "path": "apps/exam-contracts/src/types.ts",
-      "sha256": "5a2ae2d50274a8e2145b176314bc49f31d1db640e2088ba9a2e85c4441cecfdf"
+      "sha256": "1de85abd0740966d8cbfb91cd26419b0c2e002798a7e16a215953d506ff23f3e"
     },
     {
       "path": "apps/exam-llm/package.json",
@@ -233,6 +233,10 @@
       "sha256": "7252e7ce876b083fe70b6607fab1a4c6913272cf4fe20ba1f542ce5abcec830e"
     },
     {
+      "path": "apps/exam-service/src/db/migrations/010_agent_material_documents.sql",
+      "sha256": "a35ff41f80d6644978745574f057a3dfc0117d45514e5a0e1c1e4fc5df4d2cc0"
+    },
+    {
       "path": "apps/exam-service/src/db/migrator.js",
       "sha256": "1413dbda8ea93e51d53687aa957247152c9852bff0d8d124594465150d030476"
     },
@@ -250,7 +254,7 @@
     },
     {
       "path": "apps/exam-service/src/db/settings-repository.js",
-      "sha256": "50b33dd0b621d2a9579a9b3415a8559e638734ee621bedb8fc6e15c8711849ac"
+      "sha256": "d15a24a67386b0797e12245f7a16e8b48efe6f7f3af4ec7c1460d65235825183"
     },
     {
       "path": "apps/exam-service/src/db/wrong-questions-repository.js",
@@ -261,12 +265,24 @@
       "sha256": "dd6131762395b1f5e61559b7f8c6dcc262a35ea2bac356833152ea41ab122ad6"
     },
     {
+      "path": "apps/exam-service/src/material/agent-task-export.js",
+      "sha256": "b68d005c5ec70d27dfe74759d5370937d9375da4cda4a61b4ab84ab8d7c14520"
+    },
+    {
       "path": "apps/exam-service/src/material/material-anchor.js",
       "sha256": "d2d614797d4319870f302a1473b95d35cfe6f4fe33f3f8b52837379e472df33e"
     },
     {
       "path": "apps/exam-service/src/material/material-sync-manager.js",
-      "sha256": "eed5f177c2aa344fd2c364641a76ca03df916af95a7386e6dff069a1ef7c136c"
+      "sha256": "f86eeebab1a7dafd799fe22ecf6c7988c0f2bf0099df262122870a834f506094"
+    },
+    {
+      "path": "apps/exam-service/src/material/personal-documents.js",
+      "sha256": "50fb79991bcca7a5cfb8bb0e283e38d0b89a29fa5fad5c52ef4d385633390f5e"
+    },
+    {
+      "path": "apps/exam-service/src/material/task-zip.js",
+      "sha256": "b3771dfebe41dae51e62a9ab90203965d4e27ddf21e7cff505780245dd31d67d"
     },
     {
       "path": "apps/exam-service/src/scoring/case-evaluator.js",
@@ -274,11 +290,11 @@
     },
     {
       "path": "apps/exam-service/src/server.js",
-      "sha256": "d0f060e32b1ed6535b4f9429b542e032daffe5e6dfe0febc57e0c6bc8f1b454f"
+      "sha256": "a6bd6b15139d44187d973623d6286b4f7a7ccbaea602502f8e3c4d3cfeab06c1"
     },
     {
       "path": "apps/exam-service/src/service/exam-service.js",
-      "sha256": "d883ef41c406022d268f2a1ddba84afc1900d400cb050950bf71b82aa7851fb5"
+      "sha256": "67334a3036c56cd5276e96d2151407fae89a4e241a98806e7d86c251b5db7e83"
     },
     {
       "path": "apps/exam-service/src/unified-server.js",
@@ -294,11 +310,11 @@
     },
     {
       "path": "apps/exam-web/public/css/style.css",
-      "sha256": "19ce646d0718c3baf39216730b61b2a9afce484d421e002300fe56d3a60a7b52"
+      "sha256": "b26d1cc175632f487dc98a7ee2650c629dcc7bb06bde909b3cefbbf0c7e85ef8"
     },
     {
       "path": "apps/exam-web/public/index.html",
-      "sha256": "fff54ce4c1bec68c4b77452280f30815ca1bdc83ab5a0684fb13ab9ba0cd2a38"
+      "sha256": "e22fe87a865cb6d97f3d641e6c156d9f4a23cbe3098ed26ebd1b277904dba011"
     },
     {
       "path": "apps/exam-web/public/project-info.js",
@@ -322,7 +338,11 @@
     },
     {
       "path": "apps/exam-web/src/api/client.js",
-      "sha256": "28c409b2e096f3caf537574962cd35e36c1fa0704bb26734d0bcc538887a8f2c"
+      "sha256": "ad2c0087c890b0bdd8b5de5d46c92d7eec76855a2e659cf67885a80b261eeedc"
+    },
+    {
+      "path": "apps/exam-web/src/components/AgentMaterialsView.js",
+      "sha256": "9dc596579fb48b785316e96b37ea9167c61e1a13ca1f5186128847facc52afa2"
     },
     {
       "path": "apps/exam-web/src/components/AnswerSheet.js",
@@ -374,11 +394,11 @@
     },
     {
       "path": "apps/exam-web/src/components/PersonalMaterialsView.js",
-      "sha256": "4c2b558471807510296055cdae89ed6b26fabc3c2bbefc17dc73172c3d75f09b"
+      "sha256": "085b1221052af96e3f8d7bdf881a2973498e305db340fb3365de766496005dd7"
     },
     {
       "path": "apps/exam-web/src/components/ReportView.js",
-      "sha256": "453104877011c5544eb2370b6376566414ed5c2ba8c35fa86ec6818ca3aa11ba"
+      "sha256": "e2003ba82a16aaa280d37beb3a2a87d5468c92f2d48574a49dd9e700a32dfdf6"
     },
     {
       "path": "apps/exam-web/src/components/ReviewQueueView.js",
@@ -386,7 +406,7 @@
     },
     {
       "path": "apps/exam-web/src/components/SettingsModal.js",
-      "sha256": "048c9a0a9a4cf5f6d87c4f7ac69c048c8640ed9ab2683cca30c2d1299417cf92"
+      "sha256": "d24d6325b28e34797638da0adfeffd0fa8561553cc3a1e064938c4a2b85300e7"
     },
     {
       "path": "apps/exam-web/src/components/WrongQuestionsView.js",
@@ -449,6 +469,10 @@
       "sha256": "b9dcb1d156993bcd81bb8b75091b8c2df02ab6f159a2e5e35e8d4b8ad95c487e"
     },
     {
+      "path": "test/agent-materials.test.cjs",
+      "sha256": "344e93276477d4e4d6ae7f5ef164be1ec6b2de7af8958ea496fe219b000de400"
+    },
+    {
       "path": "test/bank-option-images.test.cjs",
       "sha256": "511de62f645a7370f81e82e9228bce648dc65150a8d9b121c4cd156f41411aaa"
     },
@@ -458,7 +482,7 @@
     },
     {
       "path": "test/case-llm-recovery.test.cjs",
-      "sha256": "5a666d56c723e16916aae85254195fa65d4f6255c1a01bfad6b72f7ecf760b0c"
+      "sha256": "797eb8dd58c5a55deca068665041aa6255b8f1011df9576b3113cd9c5034e65d"
     },
     {
       "path": "test/case-subquestions.test.cjs",
@@ -514,7 +538,7 @@
     },
     {
       "path": "软件设计师复习材料/案例题/02-面向对象设计模式与Java实现.md",
-      "sha256": "9105d4976f59ba984e68278041754196bd014a08d23dfab301e87419b2730909"
+      "sha256": "004db7591b3cd6c68b14c85c9724e631e10be17f0a0bcf6192843cada615e4c8"
     },
     {
       "path": "软件设计师复习材料/案例题/03-UML类图与面向对象分析.md",
@@ -522,7 +546,7 @@
     },
     {
       "path": "软件设计师复习材料/案例题/04-数据库设计与关系模式.md",
-      "sha256": "f4be536b078fc947989ee09087eb01bbc5b5c47bf2176aceadf5cfe1ef9dce80"
+      "sha256": "5ddd6468060c154439d215abdbd83da653ffd367b519c1f9632d1368cc890cd9"
     },
     {
       "path": "软件设计师复习材料/案例题/05-UML用例图与活动图.md",
@@ -538,7 +562,7 @@
     },
     {
       "path": "软件设计师复习材料/案例题/08-算法设计与分析.md",
-      "sha256": "715a9c61730744a77b5788985d26c5730dbf76181e10b3c5d7d56074eb04d63a"
+      "sha256": "47488878a022df8cf3b423e5b0df96169ec154a2f8071162a6ee4a7ec66c2033"
     },
     {
       "path": "软件设计师复习材料/案例题/assets/历年真题/2016-上半年/q1_ans_fig1.jpg",
@@ -1202,11 +1226,11 @@
     },
     {
       "path": "软件设计师复习材料/软件设计师复习材料-案例题.md",
-      "sha256": "03baccde42c082a68523630c929b1199b4765b48a991598bb83c1ceb3c3f9675"
+      "sha256": "be44cd44d2951b2ce932069a82666c1b736d6255a5c09c300002486cd36d398e"
     },
     {
       "path": "软件设计师复习材料/软件设计师复习材料-选择题.md",
-      "sha256": "c8047c7e403d45a561557b606ab401d4b7ac09b45680733ce589d0946d81ac3f"
+      "sha256": "598aa93037cc2eba2065f95996763710a64dfd7418ac183c902c5a00a41883da"
     },
     {
       "path": "软件设计师复习材料/选择题/01-计算机系统知识.md",
@@ -1214,7 +1238,7 @@
     },
     {
       "path": "软件设计师复习材料/选择题/02-程序设计语言基础知识.md",
-      "sha256": "6e73bb15b9c547bea16e9d800645a038308c8899add3d4dd1eb1843baf53274d"
+      "sha256": "e30968a99abd6d97e8ac0b43bf51077aaff38a67ad59c4fea32aa982ebaf7544"
     },
     {
       "path": "软件设计师复习材料/选择题/03-数据结构.md",
@@ -1234,7 +1258,7 @@
     },
     {
       "path": "软件设计师复习材料/选择题/07-面向对象技术.md",
-      "sha256": "f7aaf76264eb88be189b1aeb2ecd29db5125333fd4f2dd247d33e942bd0b4d99"
+      "sha256": "a1fd2234c662605166095629ec4876d11cd5d2d2f2ff0d15aa94d12be7785198"
     },
     {
       "path": "软件设计师复习材料/选择题/08-算法设计与分析.md",
@@ -1258,7 +1282,7 @@
     },
     {
       "path": "软件设计师复习材料/选择题/13-英语.md",
-      "sha256": "fc5c9df0bbd63c0374af40a56ce90f55a12a21071414a0b70017deb509d597bd"
+      "sha256": "0538ac28c9e805643af951fbeb1fcd1760681f15a5951f29a33b698e13ea2529"
     },
     {
       "path": "题库/assets/00a48ee842d4bdff03899f52ba88837e81efeda868bd76484e13f13b8968a311.png",

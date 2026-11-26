@@ -8,11 +8,11 @@
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('react'), require('../utils/dom'));
+    module.exports = factory(require('react'), require('../utils/dom'), require('./AgentMaterialsView'));
   } else {
-    root.PersonalMaterialsView = factory(root.React, root.DOM);
+    root.PersonalMaterialsView = factory(root.React, root.DOM, root.AgentMaterialsView);
   }
-})(typeof self !== 'undefined' ? self : this, function (React, DOM) {
+})(typeof self !== 'undefined' ? self : this, function (React, DOM, AgentMaterialsView) {
   'use strict';
 
   const { div, span, button, h2, h3, h4, p, ul, li, label, input, pre, code, details, summary } = DOM;
@@ -641,7 +641,7 @@
         div({ className: 'view-title-group' },
           h2({ className: 'view-title' }, '软件设计师复习资料库'),
           span({ className: 'view-subtitle' },
-            viewMode === 'static'
+            viewMode === 'personal' ? '导出错题复习任务，导入个人 Markdown，预览并保留每个版本。' : viewMode === 'static'
               ? '包含13个完整选择题章节与8个案例专题原文讲义，未经大模型处理，随时自由研读。'
               : '从实际失分定位待补知识，记住判定规则，用防错动作和迁移自测巩固同类题。'
           )
@@ -668,8 +668,12 @@
           type: 'button',
           className: `btn-mode-tab ${viewMode === 'dynamic' ? 'active' : ''}`,
           onClick: () => setViewMode('dynamic')
-        }, '⚡ 错题复习要点 (2)')
+        }, '⚡ 错题复习要点 (2)'),
+        button({ type: 'button', className: `btn-mode-tab ${viewMode === 'personal' ? 'active' : ''}`,
+          onClick: () => setViewMode('personal') }, '个人 Markdown')
       ),
+
+      viewMode === 'personal' && React.createElement(AgentMaterialsView, { apiClient, renderMarkdown: renderSafeMarkdown }),
 
       // =====================================================================
       // 1. Static Catalog (AC-1: 13 Objective + 8 Case Chapters)
@@ -750,7 +754,7 @@
               h3({ className: 'card-chapter-name' }, item.title),
 
               div({ className: 'card-body-metrics' },
-                isEmpty ? p({ className: 'text-empty-hint' }, '尚无错题实测数据，交卷后系统将自动基于真实错题动态生成专属复习要点。') :
+                isEmpty ? p({ className: 'text-empty-hint' }, '暂无个人复习要点。自动更新默认关闭，可在设置中开启，或使用本地 Agent 按需生成 Markdown（见 README）。') :
                 div({ className: 'metrics-badges-row' },
                   span({ className: 'metric-pill' }, `📌 ${item.summary?.weakPointsCount || 0} 个要点`),
                   span({ className: 'metric-pill' }, `💡 ${item.summary?.tipsCount || 0} 个Tips`),

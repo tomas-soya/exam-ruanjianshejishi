@@ -16,6 +16,243 @@ export const EXAM_OPENAPI_SPEC = {
     }
   ],
   paths: {
+  "/agent-materials/export": {
+    "post": {
+      "summary": "Export a local Agent review task ZIP from submitted practice",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 10
+                },
+                "subject": {
+                  "type": "string",
+                  "enum": [
+                    "all",
+                    "objective",
+                    "case"
+                  ],
+                  "default": "all"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "TASK.md, learning evidence, relevant chapters and local assets",
+          "content": {
+            "application/zip": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid scope or no confirmed losses"
+        },
+        "413": {
+          "description": "Task bundle too large"
+        }
+      }
+    }
+  },
+  "/agent-materials/documents": {
+    "get": {
+      "summary": "List independently stored personal Markdown documents",
+      "responses": {
+        "200": {
+          "description": "Document metadata list"
+        }
+      }
+    },
+    "post": {
+      "summary": "Save a new personal Markdown document or append a version",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "title",
+                "markdown"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "baseVersion": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Required when updating an existing document"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "markdown": {
+                  "type": "string",
+                  "description": "Self-contained Markdown, at most 2 MiB UTF-8; plain-text or Unicode formulas"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Personal Markdown document with version history",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean"
+                  },
+                  "data": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid document"
+        },
+        "409": {
+          "description": "Current version differs from baseVersion; refresh and preview before saving"
+        },
+        "413": {
+          "description": "Markdown exceeds 2 MiB"
+        }
+      }
+    }
+  },
+  "/agent-materials/documents/{id}": {
+    "get": {
+      "summary": "Read current or historical personal Markdown",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "query",
+          "schema": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Personal Markdown document with version history",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean"
+                  },
+                  "data": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Document or version does not exist"
+        }
+      }
+    }
+  },
+  "/agent-materials/documents/{id}/restore": {
+    "post": {
+      "summary": "Restore historical content by appending a new version",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "version",
+                "baseVersion"
+              ],
+              "properties": {
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "baseVersion": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Personal Markdown document with version history",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean"
+                  },
+                  "data": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Document or version does not exist"
+        },
+        "409": {
+          "description": "Current version differs from baseVersion; refresh and preview before saving"
+        }
+      }
+    }
+  },
     '/health': {
       get: {
         summary: 'Check service health and database connection status',

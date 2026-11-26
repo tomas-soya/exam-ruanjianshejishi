@@ -15,7 +15,7 @@ const { RuleBasedCaseEvaluator, PluggableCaseEvaluator } = require('../apps/exam
 const { LlmCaseEvaluator } = require('../apps/exam-llm/src/rubric/case-evaluator');
 const matRepo = require('../apps/exam-service/src/db/personal-materials-repository');
 
-async function fixture(t, { legacy = false, count = 2 } = {}) {
+async function fixture(t, { legacy = false, count = 2, autoUpdate = true } = {}) {
   // Only synthetic answers/configuration and memory SQLite; never use the learning DB.
   const previousKey = process.env.LLM_API_KEY;
   process.env.LLM_API_KEY = 'synthetic-test-key';
@@ -51,6 +51,7 @@ async function fixture(t, { legacy = false, count = 2 } = {}) {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const service = server.examService;
   service.saveLlmConfig({ endpoint: `http://127.0.0.1:${gateway.address().port}/v1`, model: 'fixture-model', apiKey: 'fixture-key', timeoutMs: 75000 });
+  if (autoUpdate !== null) require('../apps/exam-service/src/db/settings-repository').setSetting(db, 'material_auto_update', autoUpdate);
   if (!legacy) service.caseEvaluator.getEvaluator().gateway.maxRetries = 0;
   const client = new ExamApiClient({ baseUrl: `http://127.0.0.1:${server.address().port}/api/v1` });
   t.after(async () => {
@@ -62,6 +63,52 @@ async function fixture(t, { legacy = false, count = 2 } = {}) {
   const session = await client.createSession({ paperId: 'fixture-paper' });
   return { db, state, service, client, session, raw, manager, synthesized };
 }
+
+test('automatic materials default off, grading and overrides still work, explicit opt-in persists', async t => {
+  const f = await fixture(t, { autoUpdate: null });
+  const settings = require('../apps/exam-service/src/db/settings-repository');
+  assert.equal((await f.client.getLlmConfig()).autoUpdateMaterials, false);
+  const jobs = () => f.db.prepare('SELECT count(*) AS n FROM material_sync_jobs').get().n;
+  await f.client.saveAnswerDraft(f.session.id, f.raw[0].id, 'case', '实体向系统提交数据');
+  await f.client.submitSession(f.session.id); // Pending scoring while offline.
+  f.state.offline = false;
+  assert.equal((await f.client.regradeSession(f.session.id)).score, 6);
+  f.service.overrideCaseReview(f.session.id, f.raw[0].id, { points: 7, notes: '合成复核' });
+  assert.equal(jobs(), 0);
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM wrong_questions').get().n, 1);
+  const next = await f.client.createSession({ paperId: 'fixture-paper' });
+  await f.client.saveAnswerDraft(next.id, f.raw[0].id, 'case', '实体输入业务数据');
+  await f.client.submitSession(next.id); // Scored submission must also stay quiet.
+  assert.equal(jobs(), 0);
+  await f.client.saveLlmConfig({ endpoint: 'http://127.0.0.1:1/v1', autoUpdateMaterials: true });
+  assert.equal(settings.isMaterialAutoUpdateEnabled(f.db), true);
+  await f.client.saveLlmConfig({ endpoint: 'http://127.0.0.1:1/v1' });
+  assert.equal((await f.client.getLlmConfig()).autoUpdateMaterials, true);
+  f.service.overrideCaseReview(next.id, f.raw[0].id, { points: 5, notes: '启用更新' });
+  assert.ok(jobs() > 0);
+  const before = jobs();
+  await f.client.saveLlmConfig({ endpoint: 'http://127.0.0.1:1/v1', autoUpdateMaterials: false });
+  f.service.overrideCaseReview(next.id, f.raw[0].id, { points: 4, notes: '关闭更新' });
+  assert.equal(jobs(), before);
+  assert.equal(settings.isMaterialAutoUpdateEnabled(f.db), false);
+  assert.throws(() => f.service.saveLlmConfig({ endpoint: 'http://127.0.0.1:1/v1', autoUpdateMaterials: 'true' }), /布尔/);
+});
+
+test('startup retains pending jobs without running them; manual retry remains available', async t => {
+  const f = await fixture(t, { autoUpdate: null });
+  matRepo.createSyncJob(f.db, { id: 'old-pending', chapterKey: 'case_01_dfd', payloadJson: '{}' });
+  let starts = 0;
+  f.manager.triggerProcessQueue = () => { starts++; };
+  f.manager.initialize();
+  assert.equal(starts, 0);
+  assert.equal(matRepo.getSyncJob(f.db, 'old-pending').status, 'pending');
+  const id = f.service.retryPersonalMaterialSync('case_01_dfd');
+  assert.equal(matRepo.getSyncJob(f.db, id).trigger_type, 'manual_retry');
+  assert.equal(starts, 1);
+  require('../apps/exam-service/src/db/settings-repository').setSetting(f.db, 'material_auto_update', true);
+  f.manager.initialize();
+  assert.equal(starts, 2);
+});
 
 test('saved and hot-updated configuration reaches actual case gateway, including timeout', async t => {
   const f = await fixture(t);

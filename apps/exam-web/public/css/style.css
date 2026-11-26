@@ -6478,3 +6478,24 @@ button:disabled {
 .review-card-field-3 { padding-top: 0.5rem; border-top: 1px dashed #cbd5e1; color: #475569; }
 .review-card-answer summary { cursor: pointer; color: #1d4ed8; font-size: 0.9rem; }
 .review-card-answer p { margin: 0.4rem 0; }
+
+/* Personal documents keep full-length lessons and historical versions readable. */
+.agent-materials-workspace { display: grid; gap: 1rem; }
+.agent-workflow-card { padding: 1.2rem; border: 1px solid var(--border, #cbd5e1); border-radius: 0.6rem; background: #fff; min-width: 0; }
+.agent-workflow-card > h3 { margin-top: 0; }
+.agent-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.7rem; margin: 0.8rem 0; }
+.agent-workflow-card label { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+.agent-workflow-card input[type="number"] { width: 5rem; }
+.agent-workflow-card input, .agent-workflow-card select { max-width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 0.3rem; }
+.agent-upload { position: relative; cursor: pointer; overflow: hidden; }
+.agent-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.agent-upload:focus-within { outline: 2px solid #2563eb; outline-offset: 2px; }
+.agent-document-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 0.6rem; margin-top: 1rem; }
+.agent-document-button { text-align: left; border: 1px solid #cbd5e1; border-radius: 0.4rem; padding: 0.8rem; background: #f8fafc; cursor: pointer; overflow-wrap: anywhere; }
+.agent-document-button.active { border-color: #2563eb; background: #eff6ff; }
+.agent-document-button span { display: block; margin-top: 0.35rem; font-size: 0.8rem; color: #64748b; }
+.agent-compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+.agent-reader { min-width: 0; overflow-wrap: anywhere; }
+.agent-reader .markdown-content-box { padding: 1rem; max-height: 75vh; overflow: auto; border: 1px solid #e2e8f0; border-radius: 0.4rem; }
+@media (max-width: 760px) { .agent-compare { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 768px) { .materials-mode-tabs-bar .btn-mode-tab { flex: 0 0 auto; } }

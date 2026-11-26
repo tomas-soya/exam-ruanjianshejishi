@@ -55,7 +55,7 @@
       setRegradeMessage('');
       try {
         await onRegradeSession();
-        setRegradeMessage('评分已更新，复习资料将在后台同步。');
+        setRegradeMessage('评分已更新。已开启自动更新时，复习资料将在后台同步。');
       } catch (err) {
         setRegradeMessage(err.code === 'CASE_SCORING_UNAVAILABLE'
           ? 'LLM 暂不可用，未进行评分。答卷已保留，请恢复连接后重试。'

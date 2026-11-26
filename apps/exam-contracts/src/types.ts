@@ -465,3 +465,29 @@ export interface ExamChatResponse {
   assistanceUsed?: boolean;
 }
 
+export interface AgentReviewTaskScope {
+  limit?: number;
+  subject?: 'all' | 'objective' | 'case';
+}
+
+export interface PersonalDocumentInput {
+  id?: string;
+  baseVersion?: number;
+  title: string;
+  markdown: string;
+}
+
+export interface PersonalDocumentVersion {
+  version: number;
+  title: string;
+  restoredFrom: number | null;
+  createdAt: string;
+}
+
+export interface PersonalDocument extends PersonalDocumentVersion {
+  id: string;
+  currentVersion: number;
+  markdown: string;
+  versions: PersonalDocumentVersion[];
+}
+

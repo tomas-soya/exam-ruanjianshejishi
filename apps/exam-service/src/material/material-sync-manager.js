@@ -341,7 +341,10 @@ class MaterialSyncManager {
       console.warn('[MaterialSyncManager] Failed to reset processing jobs on start:', e.message);
     }
 
-    this.triggerProcessQueue();
+    // Preserve old pending jobs without silently opting users in on startup.
+    if (require('../db/settings-repository').isMaterialAutoUpdateEnabled(this.db)) {
+      this.triggerProcessQueue();
+    }
   }
 
   /**
@@ -1232,6 +1235,7 @@ class MaterialSyncManager {
 
 module.exports = {
   MaterialSyncManager,
+  getMaterialsBaseDir,
   resolveReviewChapter,
   extractConcisePointsFromMarkdown,
   isWrongOrLostPointQuestion,

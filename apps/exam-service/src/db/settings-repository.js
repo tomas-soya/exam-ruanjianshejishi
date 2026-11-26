@@ -100,6 +100,7 @@ function isSettingEncryptedInDb(db, key) {
 }
 
 module.exports = {
+  isMaterialAutoUpdateEnabled: db => getSetting(db, 'material_auto_update') === true,
   getSetting,
   setSetting,
   deleteSetting,

@@ -10,6 +10,8 @@ const { ExamService } = require('./service/exam-service');
 const { QuestionBankLoader } = require('./bank/question-loader');
 const { createDatabase, closeDatabase } = require('./db/connection');
 const { runMigrations } = require('./db/migrator');
+const personalDocs = require('./material/personal-documents');
+const { exportAgentTask } = require('./material/agent-task-export');
 
 const LOCAL_HOSTS = new Set([
   '127.0.0.1',
@@ -106,6 +108,7 @@ const SENSITIVE_ROUTES = new Set([
 ]);
 
 function isSensitiveRoute(pathname) {
+  if (pathname.startsWith('/api/v1/agent-materials')) return true;
   if (SENSITIVE_ROUTES.has(pathname)) return true;
   if (pathname.startsWith('/api/v1/system/')) return true;
   return false;
@@ -113,7 +116,7 @@ function isSensitiveRoute(pathname) {
 
 function parseJsonBody(req, maxSizeBytes = 1048576) {
   return new Promise((resolve, reject) => {
-    let raw = '';
+    const chunks = [];
     let totalBytes = 0;
 
     req.on('data', chunk => {
@@ -126,10 +129,11 @@ function parseJsonBody(req, maxSizeBytes = 1048576) {
         req.destroy();
         return;
       }
-      raw += chunk;
+      chunks.push(Buffer.from(chunk));
     });
 
     req.on('end', () => {
+      const raw = Buffer.concat(chunks).toString('utf8');
       if (!raw || raw.trim().length === 0) {
         resolve({});
         return;
@@ -592,6 +596,34 @@ function createApp({ db, bankLoader, caseEvaluator, dbPath, materialSyncManager,
         const queue = examService.getReviewQueue(limit);
         sendSuccess(res, queue);
         return;
+      }
+
+      // Local Agent task bundles and independent, versioned personal Markdown.
+      if (pathname.startsWith('/api/v1/agent-materials')) {
+        res.setHeader('Cache-Control', 'no-store');
+        const docsPath = '/api/v1/agent-materials/documents';
+        const docMatch = pathname.match(/^\/api\/v1\/agent-materials\/documents\/([a-zA-Z0-9-]{1,64})(\/restore)?$/);
+        if (method === 'GET' && pathname === docsPath) {
+          sendSuccess(res, personalDocs.listDocuments(examService.db)); return;
+        }
+        if (method === 'GET' && docMatch && !docMatch[2]) {
+          sendSuccess(res, personalDocs.getDocument(examService.db, docMatch[1], query.version)); return;
+        }
+        if (method === 'POST' && (pathname === '/api/v1/agent-materials/export' || pathname === docsPath || docMatch?.[2])) {
+          const body = await parseJsonBody(req, personalDocs.MAX_MARKDOWN_BYTES * 6 + 4096);
+          if (!body || typeof body !== 'object' || Array.isArray(body)) {
+            sendError(res, 'INVALID_BODY', '请求内容须为 JSON 对象', 400); return;
+          }
+          if (pathname === '/api/v1/agent-materials/export') {
+            const bytes = exportAgentTask(examService, body);
+            res.writeHead(200, { 'Content-Type': 'application/zip', 'Content-Length': bytes.length,
+              'Content-Disposition': 'attachment; filename="review-task.zip"', 'Cache-Control': 'no-store', ...corsHeaders });
+            res.end(bytes); return;
+          }
+          const result = docMatch?.[2] ? personalDocs.restoreDocument(examService.db, docMatch[1], body)
+            : personalDocs.saveDocument(examService.db, body);
+          sendSuccess(res, result, 201); return;
+        }
       }
 
       // Route 14.1: Personal Chapter Materials Catalog (AC-B1)

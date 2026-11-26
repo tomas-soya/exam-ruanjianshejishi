@@ -2114,3 +2114,7 @@ Java：`Shape s = new Circle(new Screen()); s.draw();`。C++：`Screen p; Circle
 - 装饰与组合：前者包装并增加职责，后者表达部分—整体并递归分派。
 - 工厂与责任链：工厂创建对象；责任链把请求交给候选处理者并逐级转交。
 - 每个空核对声明上下文、访问权限、返回类型、参数、构造链、实例化实参、分号边界和实际调用结果。先遮住答案作答，再运行迁移例验证，不能以“看懂代码”替代闭卷补全。
+
+### 补强卡：组合模式的返回类型链
+
+菜单与菜单项共同实现构件接口，菜单持有`list<MenuComponent*> elementList`，getter返回`&elementList`时，基类声明须为`virtual list<MenuComponent*> *getElement()=0;`。virtual后只写一个返回类型，不能在容器返回类型前再加void。派生类直接访问基类name时，应按题图#和访问位置判断protected；不能机械套用private。先从容器操作推成员类型，再从return表达式推返回类型，最后核对基类与子类签名。

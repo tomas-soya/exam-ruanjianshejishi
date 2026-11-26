@@ -31,6 +31,7 @@
     const [apiKey, setApiKey] = useState('');
     const [model, setModel] = useState('');
     const [timeoutSeconds, setTimeoutSeconds] = useState(30);
+    const [autoUpdateMaterials, setAutoUpdateMaterials] = useState(false);
     const [hasApiKey, setHasApiKey] = useState(false);
     const [maskedApiKey, setMaskedApiKey] = useState('');
     const [showKeyPlain, setShowKeyPlain] = useState(false);
@@ -67,6 +68,7 @@
             setEndpoint(data.endpoint || '');
             setModel(data.model || '');
             setTimeoutSeconds(Math.round((data.timeoutMs || 30000) / 1000));
+            setAutoUpdateMaterials(data.autoUpdateMaterials === true);
             setHasApiKey(Boolean(data.hasApiKey));
             setMaskedApiKey(data.maskedApiKey || '');
           })
@@ -163,6 +165,7 @@
       setSaveMessage(null);
       try {
         const updated = await apiClient.saveLlmConfig({
+          autoUpdateMaterials,
           endpoint,
           apiKey: apiKey.trim() || undefined,
           model,
@@ -369,6 +372,15 @@
               div({ className: 'col-half form-hint-box' },
                 p({ className: 'form-hint' }, '建议：普通问答 30~60s；思考模型或复习资料生成 90~120s。超时会保留已有完整资料并保护本地作答。')
               )
+            ),
+
+            div({ className: 'form-group' },
+              label({ className: 'form-label' },
+                input({ type: 'checkbox', checked: autoUpdateMaterials,
+                  onChange: e => setAutoUpdateMaterials(e.target.checked) }),
+                ' 每次提交刷题后更新动态复习资料'
+              ),
+              p({ className: 'form-hint' }, '默认关闭。启用并保存后，交卷、补评分和人工复核会触发 AI 资料更新。推荐使用本地 Agent 只读学习记录，按需生成 Markdown；详见 README。')
             ),
 
             // Test Connection Result Banner

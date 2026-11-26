@@ -99,7 +99,7 @@
         }
 
         // Reading response body remains under timer protection for ordinary requests
-        const json = await res.json();
+        const json = options.responseType === 'blob' ? await res.blob() : await res.json();
         this.setOnlineStatus(true);
         return json.data !== undefined ? json.data : json;
       } catch (err) {
@@ -374,6 +374,20 @@
 
     async exitExamMode(sessionId) {
       return this._request(`/sessions/${encodeURIComponent(sessionId)}/exit-exam-mode`, 'POST');
+    }
+
+    // Local Agent workflow: explicit export, preview in the browser, then save.
+    async exportAgentTask(scope) {
+      return this._request('/agent-materials/export', 'POST', scope, { timeout: 60000, responseType: 'blob' });
+    }
+
+    async listPersonalDocuments() { return this._request('/agent-materials/documents'); }
+    async getPersonalDocument(id, version) {
+      return this._request(`/agent-materials/documents/${encodeURIComponent(id)}${version ? `?version=${version}` : ''}`);
+    }
+    async savePersonalDocument(document) { return this._request('/agent-materials/documents', 'POST', document); }
+    async restorePersonalDocument(id, version, baseVersion) {
+      return this._request(`/agent-materials/documents/${encodeURIComponent(id)}/restore`, 'POST', { version, baseVersion });
     }
 
     // 7. System Settings & Database Migration

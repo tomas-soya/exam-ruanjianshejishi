@@ -727,7 +727,7 @@ class ExamService {
           const total = updated.questions.reduce((sum, q) => sum + (q.isElectiveUnselected ? 0 : (q.score || 0)), 0);
           this.db.prepare(`UPDATE exam_sessions SET score = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`)
             .run(updated.pendingScoringCount ? null : total, sessionId);
-          this.materialSyncManager?.enqueueSessionSubmission({
+          if (settingsRepo.isMaterialAutoUpdateEnabled(this.db)) this.materialSyncManager?.enqueueSessionSubmission({
             sessionId, practiceMode: session.practiceMode || 'exam', triggerType: 'case_regrade', processQueue: false,
             reportQuestions: updated.questions.filter(q => appliedIds.has(q.question.id))
           });
@@ -737,7 +737,7 @@ class ExamService {
           throw err;
         }
         const updatedReport = this.getSessionReport(sessionId);
-        this.materialSyncManager?.triggerProcessQueue?.();
+        if (settingsRepo.isMaterialAutoUpdateEnabled(this.db)) this.materialSyncManager?.triggerProcessQueue?.();
         return updatedReport;
       } finally {
         this.inFlightRegrades.delete(sessionId);
@@ -1047,7 +1047,7 @@ class ExamService {
     const report = this.getSessionReport(sessionId);
 
     // AC-B2 & AC-B3: Non-blocking asynchronous personal material maintenance
-    if (this.materialSyncManager) {
+    if (this.materialSyncManager && settingsRepo.isMaterialAutoUpdateEnabled(this.db)) {
       try {
         this.materialSyncManager.enqueueSessionSubmission({
           sessionId,
@@ -1382,7 +1382,7 @@ class ExamService {
     }
 
     // AC-B3: Trigger personal material update upon teacher case review override
-    if (this.materialSyncManager) {
+    if (this.materialSyncManager && settingsRepo.isMaterialAutoUpdateEnabled(this.db)) {
       try {
         this.materialSyncManager.enqueueCaseOverride({
           sessionId,
@@ -1966,6 +1966,7 @@ class ExamService {
       endpoint: effectiveEndpoint,
       model: effectiveModel,
       timeoutMs: effectiveTimeoutMs,
+      autoUpdateMaterials: settingsRepo.isMaterialAutoUpdateEnabled(this.db),
       hasApiKey: Boolean(effectiveApiKey && effectiveApiKey.length > 0),
       maskedApiKey: maskFn(effectiveApiKey),
       source: saved ? 'database' : (runtime.hasApiKey ? 'environment' : 'default')
@@ -1980,10 +1981,13 @@ class ExamService {
    * @param {string} [params.model]
    * @param {number} [params.timeoutMs]
    */
-  saveLlmConfig({ endpoint, apiKey, model, timeoutMs } = {}) {
+  saveLlmConfig({ endpoint, apiKey, model, timeoutMs, autoUpdateMaterials } = {}) {
     if (!this.db) throw new Error('Database is required to save LLM configuration');
     if (!endpoint || typeof endpoint !== 'string' || !endpoint.trim()) {
       throw new Error('API 接口地址 (endpoint) 为必填项');
+    }
+    if (autoUpdateMaterials !== undefined && typeof autoUpdateMaterials !== 'boolean') {
+      throw new Error('自动更新复习资料设置必须为布尔值');
     }
 
     let oldSaved = settingsRepo.getSetting(this.db, 'llm_config') || {};
@@ -2014,6 +2018,9 @@ class ExamService {
     };
 
     settingsRepo.setSetting(this.db, 'llm_config', newSetting);
+    if (autoUpdateMaterials !== undefined) {
+      settingsRepo.setSetting(this.db, 'material_auto_update', autoUpdateMaterials);
+    }
     this.applyLlmConfig(newSetting);
 
     return this.getLlmConfig();
